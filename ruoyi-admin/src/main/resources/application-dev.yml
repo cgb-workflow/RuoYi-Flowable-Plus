@@ -121,7 +121,7 @@ spring:
     # 数据库索引
     database: 0
     # 密码
-    password: konbai123..
+    password:
     # 连接超时时间
     timeout: 10s
     # 是否开启ssl
