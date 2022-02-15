@@ -3,11 +3,11 @@ package com.ruoyi.framework.web.exception;
 import cn.dev33.satoken.exception.NotLoginException;
 import cn.dev33.satoken.exception.NotPermissionException;
 import cn.dev33.satoken.exception.NotRoleException;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.http.HttpStatus;
 import com.ruoyi.common.core.domain.R;
 import com.ruoyi.common.exception.DemoModeException;
 import com.ruoyi.common.exception.ServiceException;
-import com.ruoyi.common.utils.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.validation.BindException;
@@ -31,33 +31,33 @@ import java.util.stream.Collectors;
 public class GlobalExceptionHandler {
 
     /**
-     * 权限校验异常
+     * 权限码异常
      */
     @ExceptionHandler(NotPermissionException.class)
-    public R<Void> handleAccessDeniedException(NotPermissionException e, HttpServletRequest request) {
+    public R<Void> handleNotPermissionException(NotPermissionException e, HttpServletRequest request) {
         String requestURI = request.getRequestURI();
-        log.error("请求地址'{}',权限校验失败'{}'", requestURI, e.getMessage());
-        return R.error(HttpStatus.HTTP_FORBIDDEN, "没有权限，请联系管理员授权");
+        log.error("请求地址'{}',权限码校验失败'{}'", requestURI, e.getMessage());
+        return R.fail(HttpStatus.HTTP_FORBIDDEN, "没有访问权限，请联系管理员授权");
     }
 
     /**
-     * 角色校验异常
+     * 角色权限异常
      */
     @ExceptionHandler(NotRoleException.class)
-    public R<Void> handleAccessDeniedException(NotRoleException e, HttpServletRequest request) {
+    public R<Void> handleNotRoleException(NotRoleException e, HttpServletRequest request) {
         String requestURI = request.getRequestURI();
-        log.error("请求地址'{}',角色校验失败'{}'", requestURI, e.getMessage());
-        return R.error(HttpStatus.HTTP_FORBIDDEN, "没有角色，请联系管理员授权");
+        log.error("请求地址'{}',角色权限校验失败'{}'", requestURI, e.getMessage());
+        return R.fail(HttpStatus.HTTP_FORBIDDEN, "没有访问权限，请联系管理员授权");
     }
 
     /**
      * 认证失败
      */
     @ExceptionHandler(NotLoginException.class)
-    public R<Void> handleAccessDeniedException(NotLoginException e, HttpServletRequest request) {
+    public R<Void> handleNotLoginException(NotLoginException e, HttpServletRequest request) {
         String requestURI = request.getRequestURI();
         log.error("请求地址'{}',认证失败'{}',无法访问系统资源", requestURI, e.getMessage());
-        return R.error(HttpStatus.HTTP_UNAUTHORIZED, StringUtils.format("请求地址'{}',认证失败'{}',无法访问系统资源", requestURI));
+        return R.fail(HttpStatus.HTTP_UNAUTHORIZED, "认证失败，无法访问系统资源");
     }
 
     /**
@@ -65,10 +65,10 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public R<Void> handleHttpRequestMethodNotSupported(HttpRequestMethodNotSupportedException e,
-                                                          HttpServletRequest request) {
+                                                                HttpServletRequest request) {
         String requestURI = request.getRequestURI();
         log.error("请求地址'{}',不支持'{}'请求", requestURI, e.getMethod());
-        return R.error(e.getMessage());
+        return R.fail(e.getMessage());
     }
 
     /**
@@ -78,7 +78,7 @@ public class GlobalExceptionHandler {
     public R<Void> handleServiceException(ServiceException e, HttpServletRequest request) {
         log.error(e.getMessage(), e);
         Integer code = e.getCode();
-        return StringUtils.isNotNull(code) ? R.error(code, e.getMessage()) : R.error(e.getMessage());
+        return ObjectUtil.isNotNull(code) ? R.fail(code.intValue(), e.getMessage()) : R.fail(e.getMessage());
     }
 
     /**
@@ -88,7 +88,7 @@ public class GlobalExceptionHandler {
     public R<Void> handleRuntimeException(RuntimeException e, HttpServletRequest request) {
         String requestURI = request.getRequestURI();
         log.error("请求地址'{}',发生未知异常.", requestURI, e);
-        return R.error(e.getMessage());
+        return R.fail(e.getMessage());
     }
 
     /**
@@ -98,7 +98,7 @@ public class GlobalExceptionHandler {
     public R<Void> handleException(Exception e, HttpServletRequest request) {
         String requestURI = request.getRequestURI();
         log.error("请求地址'{}',发生系统异常.", requestURI, e);
-        return R.error(e.getMessage());
+        return R.fail(e.getMessage());
     }
 
     /**
@@ -110,7 +110,7 @@ public class GlobalExceptionHandler {
         String message = e.getAllErrors().stream()
             .map(DefaultMessageSourceResolvable::getDefaultMessage)
             .collect(Collectors.joining(", "));
-        return R.error(message);
+        return R.fail(message);
     }
 
     /**
@@ -122,7 +122,7 @@ public class GlobalExceptionHandler {
         String message = e.getConstraintViolations().stream()
             .map(ConstraintViolation::getMessage)
             .collect(Collectors.joining(", "));
-        return R.error(message);
+        return R.fail(message);
     }
 
     /**
@@ -132,7 +132,7 @@ public class GlobalExceptionHandler {
     public R<Void> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
         log.error(e.getMessage(), e);
         String message = e.getBindingResult().getFieldError().getDefaultMessage();
-        return R.error(message);
+        return R.fail(message);
     }
 
     /**
@@ -140,6 +140,6 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(DemoModeException.class)
     public R<Void> handleDemoModeException(DemoModeException e) {
-        return R.error("演示模式，不允许操作");
+        return R.fail("演示模式，不允许操作");
     }
 }

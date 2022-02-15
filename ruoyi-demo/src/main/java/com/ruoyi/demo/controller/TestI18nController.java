@@ -36,7 +36,7 @@ public class TestI18nController {
     @ApiOperation("通过code获取国际化内容")
     @GetMapping()
     public R<Void> get(@ApiParam("国际化code") String code) {
-        return R.success(MessageUtils.message(code));
+        return R.ok(MessageUtils.message(code));
     }
 
     /**
@@ -48,7 +48,7 @@ public class TestI18nController {
     @ApiOperation("Validator 校验国际化")
     @GetMapping("/test1")
     public R<Void> test1(@NotBlank(message = "{not.null}") String str) {
-        return R.success(str);
+        return R.ok(str);
     }
 
     /**
@@ -60,7 +60,7 @@ public class TestI18nController {
     @ApiOperation("Bean 校验国际化")
     @GetMapping("/test2")
     public R<TestI18nBo> test2(@Validated TestI18nBo bo) {
-        return R.success(bo);
+        return R.ok(bo);
     }
 
     @Data

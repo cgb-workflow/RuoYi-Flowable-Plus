@@ -18,7 +18,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,7 +34,7 @@ import java.util.Arrays;
  */
 @Validated
 @Api(value = "对象存储配置控制器", tags = {"对象存储配置管理"})
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/system/oss/config")
 public class SysOssConfigController extends BaseController {
@@ -61,7 +60,7 @@ public class SysOssConfigController extends BaseController {
     public R<SysOssConfigVo> getInfo(@ApiParam("OSS配置ID")
                                               @NotNull(message = "主键不能为空")
                                               @PathVariable("ossConfigId") Integer ossConfigId) {
-        return R.success(iSysOssConfigService.queryById(ossConfigId));
+        return R.ok(iSysOssConfigService.queryById(ossConfigId));
     }
 
     /**

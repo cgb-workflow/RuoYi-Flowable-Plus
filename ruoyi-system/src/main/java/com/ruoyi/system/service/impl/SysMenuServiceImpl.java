@@ -2,13 +2,14 @@ package com.ruoyi.system.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.tree.Tree;
+import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.ruoyi.common.constant.Constants;
 import com.ruoyi.common.constant.UserConstants;
 import com.ruoyi.common.core.domain.entity.SysMenu;
 import com.ruoyi.common.core.domain.entity.SysRole;
 import com.ruoyi.common.core.domain.entity.SysUser;
-import com.ruoyi.common.utils.SecurityUtils;
+import com.ruoyi.common.helper.LoginHelper;
 import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.common.utils.TreeBuildUtils;
 import com.ruoyi.system.domain.SysRoleMenu;
@@ -98,7 +99,7 @@ public class SysMenuServiceImpl implements ISysMenuService {
     @Override
     public List<SysMenu> selectMenuTreeByUserId(Long userId) {
         List<SysMenu> menus = null;
-        if (SecurityUtils.isAdmin(userId)) {
+        if (LoginHelper.isAdmin(userId)) {
             menus = baseMapper.selectMenuTreeAll();
         } else {
             menus = baseMapper.selectMenuTreeByUserId(userId);
@@ -180,8 +181,7 @@ public class SysMenuServiceImpl implements ISysMenuService {
         if (CollUtil.isEmpty(menus)) {
             return CollUtil.newArrayList();
         }
-        Long parentId = menus.get(0).getParentId();
-        return TreeBuildUtils.build(menus, parentId, (menu, tree) ->
+        return TreeBuildUtils.build(menus, (menu, tree) ->
             tree.setId(menu.getMenuId())
                 .setParentId(menu.getParentId())
                 .setName(menu.getMenuName())
@@ -262,12 +262,11 @@ public class SysMenuServiceImpl implements ISysMenuService {
      */
     @Override
     public String checkMenuNameUnique(SysMenu menu) {
-        Long menuId = StringUtils.isNull(menu.getMenuId()) ? -1L : menu.getMenuId();
-        boolean count = baseMapper.exists(new LambdaQueryWrapper<SysMenu>()
+        boolean exist = baseMapper.exists(new LambdaQueryWrapper<SysMenu>()
             .eq(SysMenu::getMenuName, menu.getMenuName())
             .eq(SysMenu::getParentId, menu.getParentId())
-            .ne(SysMenu::getMenuId, menuId));
-        if (count) {
+            .ne(ObjectUtil.isNotNull(menu.getMenuId()), SysMenu::getMenuId, menu.getMenuId()));
+        if (exist) {
             return UserConstants.NOT_UNIQUE;
         }
         return UserConstants.UNIQUE;

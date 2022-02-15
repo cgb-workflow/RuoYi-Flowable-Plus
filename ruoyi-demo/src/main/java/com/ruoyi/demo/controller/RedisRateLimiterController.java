@@ -30,7 +30,7 @@ public class RedisRateLimiterController {
     @RateLimiter(count = 2, time = 10)
     @GetMapping("/test")
     public R<String> test(String value) {
-        return R.success("操作成功", value);
+        return R.ok("操作成功", value);
     }
 
     /**
@@ -41,7 +41,7 @@ public class RedisRateLimiterController {
     @RateLimiter(count = 2, time = 10, limitType = LimitType.IP)
     @GetMapping("/testip")
     public R<String> testip(String value) {
-        return R.success("操作成功", value);
+        return R.ok("操作成功", value);
     }
 
     /**
@@ -52,7 +52,7 @@ public class RedisRateLimiterController {
     @RateLimiter(count = 2, time = 10, limitType = LimitType.CLUSTER)
     @GetMapping("/testcluster")
     public R<String> testcluster(String value) {
-        return R.success("操作成功", value);
+        return R.ok("操作成功", value);
     }
 
 }

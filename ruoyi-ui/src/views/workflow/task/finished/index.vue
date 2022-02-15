@@ -138,8 +138,8 @@ export default {
     getList() {
       this.loading = true;
       finishedList(this.queryParams).then(response => {
-        this.finishedList = response.data.records;
-        this.total = response.data.total;
+        this.finishedList = response.rows;
+        this.total = response.total;
         this.loading = false;
       });
     },
@@ -206,6 +206,7 @@ export default {
     handleFlowRecord(row){
       this.$router.push({ path: '/task/record/index',
         query: {
+          definitionId: row.procDefId,
           procInsId: row.procInsId,
           deployId: row.deployId,
           taskId: row.taskId,

@@ -7,7 +7,6 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @Slf4j
 @Api(value = "有界队列 演示案例", tags = {"有界队列"})
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/demo/queue/bounded")
 public class BoundedQueueController {
@@ -43,7 +42,7 @@ public class BoundedQueueController {
             log.info("通道: {} , 设置容量: {}", queueName, capacity);
         } else {
             log.info("通道: {} , 设置容量失败", queueName);
-            return R.error("操作失败");
+            return R.fail("操作失败");
         }
         for (int i = 0; i < 11; i++) {
             String data = "data-" + i;
@@ -54,7 +53,7 @@ public class BoundedQueueController {
                 log.info("通道: {} , 发送数据: {}", queueName, data);
             }
         }
-        return R.success("操作成功");
+        return R.ok("操作成功");
     }
 
     @ApiOperation("删除队列数据")
@@ -64,9 +63,9 @@ public class BoundedQueueController {
         if (QueueUtils.removeBoundedQueueObject(queueName, data)) {
             log.info("通道: {} , 删除数据: {}", queueName, data);
         } else {
-            return R.error("操作失败");
+            return R.fail("操作失败");
         }
-        return R.success("操作成功");
+        return R.ok("操作成功");
     }
 
     @ApiOperation("获取队列数据")
@@ -77,7 +76,7 @@ public class BoundedQueueController {
             data = QueueUtils.getBoundedQueueObject(queueName);
             log.info("通道: {} , 获取数据: {}", queueName, data);
         } while (data != null);
-        return R.success("操作成功");
+        return R.ok("操作成功");
     }
 
 }

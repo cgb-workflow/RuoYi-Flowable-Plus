@@ -44,15 +44,15 @@ public class RedisLockController {
             e.printStackTrace();
         }
         System.out.println("end :" + key + ",time:" + LocalTime.now().toString());
-        return R.success("操作成功", value);
+        return R.ok("操作成功", value);
     }
 
     /**
      * 测试lock4j 工具
      */
     @ApiOperation("测试lock4j 工具")
-    @GetMapping("/testLock4jLockTemaplate")
-    public R<String> testLock4jLockTemaplate(String key, String value) {
+    @GetMapping("/testLock4jLockTemplate")
+    public R<String> testLock4jLockTemplate(String key, String value) {
         final LockInfo lockInfo = lockTemplate.lock(key, 30000L, 5000L, RedissonLockExecutor.class);
         if (null == lockInfo) {
             throw new RuntimeException("业务处理中,请稍后再试");
@@ -70,7 +70,7 @@ public class RedisLockController {
             lockTemplate.releaseLock(lockInfo);
         }
         //结束
-        return R.success("操作成功", value);
+        return R.ok("操作成功", value);
     }
 
 }

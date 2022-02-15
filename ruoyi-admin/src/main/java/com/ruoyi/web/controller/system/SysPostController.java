@@ -15,7 +15,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,7 +28,7 @@ import java.util.List;
  */
 @Validated
 @Api(value = "岗位信息控制器", tags = {"岗位信息管理"})
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/system/post")
 public class SysPostController extends BaseController {
@@ -62,7 +61,7 @@ public class SysPostController extends BaseController {
     @SaCheckPermission("system:post:query")
     @GetMapping(value = "/{postId}")
     public R<SysPost> getInfo(@ApiParam("岗位ID") @PathVariable Long postId) {
-        return R.success(postService.selectPostById(postId));
+        return R.ok(postService.selectPostById(postId));
     }
 
     /**
@@ -74,9 +73,9 @@ public class SysPostController extends BaseController {
     @PostMapping
     public R<Void> add(@Validated @RequestBody SysPost post) {
         if (UserConstants.NOT_UNIQUE.equals(postService.checkPostNameUnique(post))) {
-            return R.error("新增岗位'" + post.getPostName() + "'失败，岗位名称已存在");
+            return R.fail("新增岗位'" + post.getPostName() + "'失败，岗位名称已存在");
         } else if (UserConstants.NOT_UNIQUE.equals(postService.checkPostCodeUnique(post))) {
-            return R.error("新增岗位'" + post.getPostName() + "'失败，岗位编码已存在");
+            return R.fail("新增岗位'" + post.getPostName() + "'失败，岗位编码已存在");
         }
         return toAjax(postService.insertPost(post));
     }
@@ -90,9 +89,9 @@ public class SysPostController extends BaseController {
     @PutMapping
     public R<Void> edit(@Validated @RequestBody SysPost post) {
         if (UserConstants.NOT_UNIQUE.equals(postService.checkPostNameUnique(post))) {
-            return R.error("修改岗位'" + post.getPostName() + "'失败，岗位名称已存在");
+            return R.fail("修改岗位'" + post.getPostName() + "'失败，岗位名称已存在");
         } else if (UserConstants.NOT_UNIQUE.equals(postService.checkPostCodeUnique(post))) {
-            return R.error("修改岗位'" + post.getPostName() + "'失败，岗位编码已存在");
+            return R.fail("修改岗位'" + post.getPostName() + "'失败，岗位编码已存在");
         }
         return toAjax(postService.updatePost(post));
     }
@@ -115,6 +114,6 @@ public class SysPostController extends BaseController {
     @GetMapping("/optionselect")
     public R<List<SysPost>> optionselect() {
         List<SysPost> posts = postService.selectPostAll();
-        return R.success(posts);
+        return R.ok(posts);
     }
 }

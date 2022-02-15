@@ -117,13 +117,13 @@
     <!-- 发起流程 -->
     <el-dialog :title="title" :visible.sync="open" width="60%" append-to-body>
       <el-table v-loading="processLoading" fit :data="definitionList" border >
-        <el-table-column label="流程名称" align="center" prop="name" />
+        <el-table-column label="流程名称" align="center" prop="processName" />
         <el-table-column label="流程版本" align="center">
           <template slot-scope="scope">
             <el-tag size="medium" >v{{ scope.row.version }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="流程分类" align="center" prop="category" />
+        <el-table-column label="流程分类" align="center" prop="categoryCode" />
         <el-table-column label="操作" align="center" width="300" class-name="small-padding fixed-width">
           <template slot-scope="scope">
             <el-button
@@ -215,8 +215,8 @@ export default {
     getList() {
       this.loading = true;
       myProcessList(this.queryParams).then(response => {
-        this.myProcessList = response.data.records;
-        this.total = response.data.total;
+        this.myProcessList = response.rows;
+        this.total = response.total;
         this.loading = false;
       });
     },
@@ -265,19 +265,20 @@ export default {
     },
     listDefinition(){
       listDefinition(this.queryParams).then(response => {
-        this.definitionList = response.data.records;
-        this.processTotal = response.data.total;
+        this.definitionList = response.rows;
+        this.processTotal = response.total;
         this.processLoading = false;
       });
     },
     /**  发起流程申请 */
     handleStartProcess(row){
-      this.$router.push({ path: '/task/record/index',
+      this.$router.push({
+        path: '/task/record/index',
         query: {
+          definitionId: row.definitionId,
           deployId: row.deploymentId,
-          procDefId:row.id,
           finished: true
-          }
+        }
       })
     },
     /**  取消流程申请 */
@@ -294,6 +295,7 @@ export default {
     handleFlowRecord(row){
       this.$router.push({ path: '/task/record/index',
         query: {
+          definitionId: row.procDefId,
           procInsId: row.procInsId,
           deployId: row.deployId,
           taskId: row.taskId,

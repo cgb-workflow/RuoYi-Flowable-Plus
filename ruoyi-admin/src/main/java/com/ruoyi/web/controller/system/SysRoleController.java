@@ -1,18 +1,18 @@
 package com.ruoyi.web.controller.system;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
+import cn.hutool.core.util.ObjectUtil;
 import com.ruoyi.common.annotation.Log;
 import com.ruoyi.common.constant.UserConstants;
 import com.ruoyi.common.core.controller.BaseController;
-import com.ruoyi.common.core.domain.PageQuery;
 import com.ruoyi.common.core.domain.R;
+import com.ruoyi.common.core.domain.PageQuery;
 import com.ruoyi.common.core.domain.entity.SysRole;
 import com.ruoyi.common.core.domain.entity.SysUser;
 import com.ruoyi.common.core.domain.model.LoginUser;
 import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.common.enums.BusinessType;
-import com.ruoyi.common.utils.LoginUtils;
-import com.ruoyi.common.utils.StringUtils;
+import com.ruoyi.common.helper.LoginHelper;
 import com.ruoyi.common.utils.poi.ExcelUtil;
 import com.ruoyi.system.domain.SysUserRole;
 import com.ruoyi.system.service.ISysRoleService;
@@ -20,7 +20,6 @@ import com.ruoyi.system.service.ISysUserService;
 import com.ruoyi.system.service.SysPermissionService;
 import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,7 +33,7 @@ import java.util.List;
  */
 @Validated
 @Api(value = "角色信息控制器", tags = {"角色信息管理"})
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/system/role")
 public class SysRoleController extends BaseController {
@@ -67,7 +66,7 @@ public class SysRoleController extends BaseController {
     @GetMapping(value = "/{roleId}")
     public R<SysRole> getInfo(@ApiParam("角色ID") @PathVariable Long roleId) {
         roleService.checkRoleDataScope(roleId);
-        return R.success(roleService.selectRoleById(roleId));
+        return R.ok(roleService.selectRoleById(roleId));
     }
 
     /**
@@ -79,9 +78,9 @@ public class SysRoleController extends BaseController {
     @PostMapping
     public R<Void> add(@Validated @RequestBody SysRole role) {
         if (UserConstants.NOT_UNIQUE.equals(roleService.checkRoleNameUnique(role))) {
-            return R.error("新增角色'" + role.getRoleName() + "'失败，角色名称已存在");
+            return R.fail("新增角色'" + role.getRoleName() + "'失败，角色名称已存在");
         } else if (UserConstants.NOT_UNIQUE.equals(roleService.checkRoleKeyUnique(role))) {
-            return R.error("新增角色'" + role.getRoleName() + "'失败，角色权限已存在");
+            return R.fail("新增角色'" + role.getRoleName() + "'失败，角色权限已存在");
         }
         return toAjax(roleService.insertRole(role));
 
@@ -96,23 +95,24 @@ public class SysRoleController extends BaseController {
     @PutMapping
     public R<Void> edit(@Validated @RequestBody SysRole role) {
         roleService.checkRoleAllowed(role);
+        roleService.checkRoleDataScope(role.getRoleId());
         if (UserConstants.NOT_UNIQUE.equals(roleService.checkRoleNameUnique(role))) {
-            return R.error("修改角色'" + role.getRoleName() + "'失败，角色名称已存在");
+            return R.fail("修改角色'" + role.getRoleName() + "'失败，角色名称已存在");
         } else if (UserConstants.NOT_UNIQUE.equals(roleService.checkRoleKeyUnique(role))) {
-            return R.error("修改角色'" + role.getRoleName() + "'失败，角色权限已存在");
+            return R.fail("修改角色'" + role.getRoleName() + "'失败，角色权限已存在");
         }
 
         if (roleService.updateRole(role) > 0) {
             // 更新缓存用户权限
             LoginUser loginUser = getLoginUser();
             SysUser sysUser = userService.selectUserById(loginUser.getUserId());
-            if (StringUtils.isNotNull(sysUser) && !sysUser.isAdmin()) {
+            if (ObjectUtil.isNotNull(sysUser) && !sysUser.isAdmin()) {
                 loginUser.setMenuPermission(permissionService.getMenuPermission(sysUser));
-                LoginUtils.setLoginUser(loginUser);
+                LoginHelper.setLoginUser(loginUser);
             }
-            return R.success();
+            return R.ok();
         }
-        return R.error("修改角色'" + role.getRoleName() + "'失败，请联系管理员");
+        return R.fail("修改角色'" + role.getRoleName() + "'失败，请联系管理员");
     }
 
     /**
@@ -124,6 +124,7 @@ public class SysRoleController extends BaseController {
     @PutMapping("/dataScope")
     public R<Void> dataScope(@RequestBody SysRole role) {
         roleService.checkRoleAllowed(role);
+        roleService.checkRoleDataScope(role.getRoleId());
         return toAjax(roleService.authDataScope(role));
     }
 
@@ -136,6 +137,7 @@ public class SysRoleController extends BaseController {
     @PutMapping("/changeStatus")
     public R<Void> changeStatus(@RequestBody SysRole role) {
         roleService.checkRoleAllowed(role);
+        roleService.checkRoleDataScope(role.getRoleId());
         return toAjax(roleService.updateRoleStatus(role));
     }
 
@@ -157,7 +159,7 @@ public class SysRoleController extends BaseController {
     @SaCheckPermission("system:role:query")
     @GetMapping("/optionselect")
     public R<List<SysRole>> optionselect() {
-        return R.success(roleService.selectRoleAll());
+        return R.ok(roleService.selectRoleAll());
     }
 
     /**
@@ -218,6 +220,7 @@ public class SysRoleController extends BaseController {
     @Log(title = "角色管理", businessType = BusinessType.GRANT)
     @PutMapping("/authUser/selectAll")
     public R<Void> selectAuthUserAll(Long roleId, Long[] userIds) {
+        roleService.checkRoleDataScope(roleId);
         return toAjax(roleService.insertAuthUsers(roleId, userIds));
     }
 }

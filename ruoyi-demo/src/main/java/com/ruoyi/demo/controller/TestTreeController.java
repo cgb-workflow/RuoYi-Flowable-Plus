@@ -17,7 +17,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,7 +34,7 @@ import java.util.List;
  */
 @Validated
 @Api(value = "测试树表控制器", tags = {"测试树表管理"})
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/demo/tree")
 public class TestTreeController extends BaseController {
@@ -50,7 +49,7 @@ public class TestTreeController extends BaseController {
     @GetMapping("/list")
     public R<List<TestTreeVo>> list(@Validated(QueryGroup.class) TestTreeBo bo) {
         List<TestTreeVo> list = iTestTreeService.queryList(bo);
-        return R.success(list);
+        return R.ok(list);
     }
 
     /**
@@ -74,7 +73,7 @@ public class TestTreeController extends BaseController {
     public R<TestTreeVo> getInfo(@ApiParam("测试树ID")
                                           @NotNull(message = "主键不能为空")
                                           @PathVariable("id") Long id) {
-        return R.success(iTestTreeService.queryById(id));
+        return R.ok(iTestTreeService.queryById(id));
     }
 
     /**
@@ -106,7 +105,7 @@ public class TestTreeController extends BaseController {
      */
     @ApiOperation("删除测试树表")
     @SaCheckPermission("demo:tree:remove")
-    @Log(title = "测试树表" , businessType = BusinessType.DELETE)
+    @Log(title = "测试树表", businessType = BusinessType.DELETE)
     @DeleteMapping("/{ids}")
     public R<Void> remove(@ApiParam("测试树ID串")
                                    @NotEmpty(message = "主键不能为空")

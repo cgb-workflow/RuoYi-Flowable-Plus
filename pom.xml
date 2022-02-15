@@ -18,35 +18,35 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>1.8</java.version>
-        <maven-jar-plugin.version>3.2.0</maven-jar-plugin.version>
+        <maven-jar-plugin.version>3.2.2</maven-jar-plugin.version>
         <druid.version>1.2.8</druid.version>
         <knife4j.version>3.0.3</knife4j.version>
         <swagger-annotations.version>1.5.22</swagger-annotations.version>
         <poi.version>4.1.2</poi.version>
-        <easyexcel.version>2.2.11</easyexcel.version>
+        <easyexcel.version>3.0.5</easyexcel.version>
         <cglib.version>3.3.0</cglib.version>
         <velocity.version>2.3</velocity.version>
-        <satoken.version>1.28.0</satoken.version>
-        <mybatis-plus.version>3.5.0</mybatis-plus.version>
+        <satoken.version>1.29.0</satoken.version>
+        <mybatis-plus.version>3.5.1</mybatis-plus.version>
         <p6spy.version>3.9.1</p6spy.version>
-        <hutool.version>5.7.18</hutool.version>
+        <hutool.version>5.7.20</hutool.version>
         <okhttp.version>4.9.2</okhttp.version>
-        <spring-boot-admin.version>2.6.0</spring-boot-admin.version>
-        <redisson.version>3.16.7</redisson.version>
+        <spring-boot-admin.version>2.6.2</spring-boot-admin.version>
+        <redisson.version>3.16.8</redisson.version>
         <lock4j.version>2.2.1</lock4j.version>
         <dynamic-ds.version>3.5.0</dynamic-ds.version>
         <tlog.version>1.3.6</tlog.version>
         <xxl-job.version>2.3.0</xxl-job.version>
-        <flowable.version>6.5.0</flowable.version>
+        <flowable.version>6.7.2</flowable.version>
 
         <!-- jdk11 缺失依赖 jaxb-->
         <jaxb.version>3.0.1</jaxb.version>
 
         <!-- OSS 配置 -->
-        <qiniu.version>7.9.0</qiniu.version>
-        <aliyun.oss.version>3.13.1</aliyun.oss.version>
-        <qcloud.cos.version>5.6.58</qcloud.cos.version>
-        <minio.version>8.3.4</minio.version>
+        <qiniu.version>7.9.2</qiniu.version>
+        <aliyun.oss.version>3.14.0</aliyun.oss.version>
+        <qcloud.cos.version>5.6.68</qcloud.cos.version>
+        <minio.version>8.3.5</minio.version>
 
         <!-- docker 配置 -->
         <docker.registry.url>localhost</docker.registry.url>
@@ -231,6 +231,13 @@
                 <version>${tlog.version}</version>
             </dependency>
 
+            <!-- flowable -->
+            <dependency>
+                <groupId>org.flowable</groupId>
+                <artifactId>flowable-spring-boot-starter-process</artifactId>
+                <version>${flowable.version}</version>
+            </dependency>
+
             <!-- 定时任务 -->
             <dependency>
                 <groupId>com.ruoyi</groupId>
@@ -273,26 +280,6 @@
                 <version>${ruoyi-flowable-plus.version}</version>
             </dependency>
 
-            <dependency>
-                <groupId>org.flowable</groupId>
-                <artifactId>flowable-spring-boot-starter-basic</artifactId>
-                <version>${flowable.version}</version>
-                <exclusions>
-                    <!-- 需要排除flowable的mybatis依赖，不然会跟mybatis-plus冲突 -->
-                    <exclusion>
-                        <groupId>org.mybatis</groupId>
-                        <artifactId>mybatis</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-
-            <dependency>
-                <groupId>org.flowable</groupId>
-                <artifactId>flowable-engine</artifactId>
-                <version>${flowable.version}</version>
-                <scope>compile</scope>
-            </dependency>
-
             <!-- OSS对象存储模块 -->
             <dependency>
                 <groupId>com.ruoyi</groupId>
@@ -329,7 +316,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.1</version>
+                <version>3.9.0</version>
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
@@ -349,6 +336,7 @@
                 <includes>
                     <include>application*</include>
                     <include>bootstrap*</include>
+                    <include>banner*</include>
                 </includes>
                 <!-- 启用过滤 即该资源中的变量将会被过滤器中的值替换 -->
                 <filtering>true</filtering>

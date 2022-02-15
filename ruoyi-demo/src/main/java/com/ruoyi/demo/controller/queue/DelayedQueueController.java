@@ -7,7 +7,6 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,7 +27,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @Api(value = "延迟队列 演示案例", tags = {"延迟队列"})
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/demo/queue/delayed")
 public class DelayedQueueController {
@@ -42,7 +41,7 @@ public class DelayedQueueController {
             // 观察接收时间
             log.info("通道: {}, 收到数据: {}", queueName, orderNum);
         });
-        return R.success("操作成功");
+        return R.ok("操作成功");
     }
 
     @ApiOperation("添加队列数据")
@@ -53,7 +52,7 @@ public class DelayedQueueController {
         QueueUtils.addDelayedQueueObject(queueName, orderNum, time, TimeUnit.SECONDS);
         // 观察发送时间
         log.info("通道: {} , 发送数据: {}", queueName, orderNum);
-        return R.success("操作成功");
+        return R.ok("操作成功");
     }
 
     @ApiOperation("删除队列数据")
@@ -63,9 +62,9 @@ public class DelayedQueueController {
         if (QueueUtils.removeDelayedQueueObject(queueName, orderNum)) {
             log.info("通道: {} , 删除数据: {}", queueName, orderNum);
         } else {
-            return R.error("操作失败");
+            return R.fail("操作失败");
         }
-        return R.success("操作成功");
+        return R.ok("操作成功");
     }
 
     @ApiOperation("销毁队列")
@@ -73,7 +72,7 @@ public class DelayedQueueController {
     public R<Void> destroy(@ApiParam("队列名") String queueName) {
         // 用完了一定要销毁 否则会一直存在
         QueueUtils.destroyDelayedQueue(queueName);
-        return R.success("操作成功");
+        return R.ok("操作成功");
     }
 
 }

@@ -1,134 +1,84 @@
 package com.ruoyi.common.core.domain;
 
-import cn.hutool.http.HttpStatus;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.experimental.Accessors;
+
+import java.io.Serializable;
 
 /**
- * 操作消息提醒
+ * 响应信息主体
  *
  * @author Lion Li
  */
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
-@Accessors(chain = true)
 @ApiModel("请求响应对象")
-public class R<T> {
-
+public class R<T> implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 状态码
+     * 成功
      */
+    public static final int SUCCESS = 200;
+
+    /**
+     * 失败
+     */
+    public static final int FAIL = 500;
+
     @ApiModelProperty("消息状态码")
     private int code;
 
-    /**
-     * 返回内容
-     */
     @ApiModelProperty("消息内容")
     private String msg;
 
-    /**
-     * 数据对象
-     */
     @ApiModelProperty("数据对象")
     private T data;
 
-	/**
-	 * 初始化一个新创建的 R 对象
-	 *
-	 * @param code 状态码
-	 * @param msg  返回内容
-	 */
-	public R(int code, String msg) {
-		this.code = code;
-		this.msg = msg;
-	}
+    public static <T> R<T> ok() {
+        return restResult(null, SUCCESS, null);
+    }
 
-	/**
-	 * 返回成功消息
-	 *
-	 * @return 成功消息
-	 */
-	public static R<Void> success() {
-		return R.success("操作成功");
-	}
+    public static <T> R<T> ok(T data) {
+        return restResult(data, SUCCESS, null);
+    }
 
-	/**
-	 * 返回成功数据
-	 *
-	 * @return 成功消息
-	 */
-	public static <T> R<T> success(T data) {
-		return R.success("操作成功", data);
-	}
+    public static <T> R<T> ok(String msg) {
+        return restResult(null, SUCCESS, msg);
+    }
 
-	/**
-	 * 返回成功消息
-	 *
-	 * @param msg 返回内容
-	 * @return 成功消息
-	 */
-	public static R<Void> success(String msg) {
-		return R.success(msg, null);
-	}
+    public static <T> R<T> ok(String msg, T data) {
+        return restResult(data, SUCCESS, msg);
+    }
 
-	/**
-	 * 返回成功消息
-	 *
-	 * @param msg  返回内容
-	 * @param data 数据对象
-	 * @return 成功消息
-	 */
-	public static <T> R<T> success(String msg, T data) {
-		return new R<>(HttpStatus.HTTP_OK, msg, data);
-	}
+    public static <T> R<T> fail() {
+        return restResult(null, FAIL, null);
+    }
 
-	/**
-	 * 返回错误消息
-	 *
-	 * @return
-	 */
-	public static R<Void> error() {
-		return R.error("操作失败");
-	}
+    public static <T> R<T> fail(String msg) {
+        return restResult(null, FAIL, msg);
+    }
 
-	/**
-	 * 返回错误消息
-	 *
-	 * @param msg 返回内容
-	 * @return 警告消息
-	 */
-	public static R<Void> error(String msg) {
-		return R.error(msg, null);
-	}
+    public static <T> R<T> fail(T data) {
+        return restResult(data, FAIL, null);
+    }
 
-	/**
-	 * 返回错误消息
-	 *
-	 * @param msg  返回内容
-	 * @param data 数据对象
-	 * @return 警告消息
-	 */
-	public static <T> R<T> error(String msg, T data) {
-		return new R<>(HttpStatus.HTTP_INTERNAL_ERROR, msg, data);
-	}
+    public static <T> R<T> fail(String msg, T data) {
+        return restResult(data, FAIL, msg);
+    }
 
-	/**
-	 * 返回错误消息
-	 *
-	 * @param code 状态码
-	 * @param msg  返回内容
-	 * @return 警告消息
-	 */
-	public static R<Void> error(int code, String msg) {
-		return new R<>(code, msg, null);
-	}
+    public static <T> R<T> fail(int code, String msg) {
+        return restResult(null, code, msg);
+    }
+
+    private static <T> R<T> restResult(T data, int code, String msg) {
+        R<T> r = new R<>();
+        r.setCode(code);
+        r.setData(data);
+        r.setMsg(msg);
+        return r;
+    }
 
 }

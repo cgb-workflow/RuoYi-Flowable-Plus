@@ -181,7 +181,9 @@
 <script>
 import { listTable, previewTable, delTable, genCode, synchDb } from "@/api/tool/gen";
 import importTable from "./importTable";
+import "highlight.js/styles/github-gist.css";
 const hljs = require("highlight.js/lib/core");
+hljs.registerLanguage("java", require("highlight.js/lib/languages/java"));
 hljs.registerLanguage("java", require("highlight.js/lib/languages/java"));
 hljs.registerLanguage("xml", require("highlight.js/lib/languages/xml"));
 hljs.registerLanguage("html", require("highlight.js/lib/languages/xml"));
@@ -320,7 +322,7 @@ export default {
     /** 修改按钮操作 */
     handleEditTable(row) {
       const tableId = row.tableId || this.ids[0];
-      this.$router.push({ path: '/tool/gen-edit/index', query: { tableId: tableId, pageNum: this.queryParams.pageNum } });
+      this.$router.push({ path: '/tool/gen-edit/index/' + tableId, query: { pageNum: this.queryParams.pageNum } });
     },
     /** 删除按钮操作 */
     handleDelete(row) {

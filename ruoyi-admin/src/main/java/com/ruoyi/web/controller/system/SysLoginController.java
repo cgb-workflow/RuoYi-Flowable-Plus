@@ -7,17 +7,15 @@ import com.ruoyi.common.core.domain.R;
 import com.ruoyi.common.core.domain.entity.SysMenu;
 import com.ruoyi.common.core.domain.entity.SysUser;
 import com.ruoyi.common.core.domain.model.LoginBody;
-import com.ruoyi.common.core.service.UserService;
-import com.ruoyi.common.utils.LoginUtils;
-import com.ruoyi.common.utils.spring.SpringUtils;
+import com.ruoyi.common.helper.LoginHelper;
 import com.ruoyi.system.domain.vo.RouterVo;
 import com.ruoyi.system.service.ISysMenuService;
+import com.ruoyi.system.service.ISysUserService;
 import com.ruoyi.system.service.SysLoginService;
 import com.ruoyi.system.service.SysPermissionService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,12 +34,13 @@ import java.util.Set;
  */
 @Validated
 @Api(value = "登录验证控制器", tags = {"登录验证管理"})
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
+@RequiredArgsConstructor
 @RestController
 public class SysLoginController {
 
     private final SysLoginService loginService;
     private final ISysMenuService menuService;
+    private final ISysUserService userService;
     private final SysPermissionService permissionService;
 
     /**
@@ -52,23 +51,23 @@ public class SysLoginController {
      */
     @ApiOperation("登录方法")
     @PostMapping("/login")
-    public R<Map<String, Object>> login(@RequestBody LoginBody loginBody) {
+    public R<Map<String, Object>> login(@Validated @RequestBody LoginBody loginBody) {
         Map<String, Object> ajax = new HashMap<>();
         // 生成令牌
         String token = loginService.login(loginBody.getUsername(), loginBody.getPassword(), loginBody.getCode(),
-                loginBody.getUuid());
+            loginBody.getUuid());
         ajax.put(Constants.TOKEN, token);
-        return R.success(ajax);
+        return R.ok(ajax);
     }
 
     @ApiOperation("登出方法")
     @PostMapping("/logout")
-    public R<Void> logout(){
+    public R<Void> logout() {
         try {
             StpUtil.logout();
         } catch (NotLoginException e) {
         }
-        return R.success("退出成功");
+        return R.ok("退出成功");
     }
 
     /**
@@ -79,7 +78,7 @@ public class SysLoginController {
     @ApiOperation("获取用户信息")
     @GetMapping("getInfo")
     public R<Map<String, Object>> getInfo() {
-        SysUser user = SpringUtils.getBean(UserService.class).selectUserById(LoginUtils.getUserId());
+        SysUser user = userService.selectUserById(LoginHelper.getUserId());
         // 角色集合
         Set<String> roles = permissionService.getRolePermission(user);
         // 权限集合
@@ -88,7 +87,7 @@ public class SysLoginController {
         ajax.put("user", user);
         ajax.put("roles", roles);
         ajax.put("permissions", permissions);
-        return R.success(ajax);
+        return R.ok(ajax);
     }
 
     /**
@@ -99,8 +98,8 @@ public class SysLoginController {
     @ApiOperation("获取路由信息")
     @GetMapping("getRouters")
     public R<List<RouterVo>> getRouters() {
-        Long userId = LoginUtils.getUserId();
+        Long userId = LoginHelper.getUserId();
         List<SysMenu> menus = menuService.selectMenuTreeByUserId(userId);
-        return R.success(menuService.buildMenus(menus));
+        return R.ok(menuService.buildMenus(menus));
     }
 }

@@ -80,7 +80,7 @@ export const constantRoutes = [
     hidden: true,
     children: [
       {
-        path: 'designer/index',
+        path: 'designer',
         component: () => import('@/views/workflow/definition/designer'),
         name: 'WorkflowDesigner',
         meta: { title: '流程设计', icon: '' }
@@ -194,7 +194,7 @@ export const dynamicRoutes = [
     permissions: ['tool:gen:edit'],
     children: [
       {
-        path: 'index',
+        path: 'index/:tableId(\\d+)',
         component: () => import('@/views/tool/gen/editTable'),
         name: 'GenEdit',
         meta: { title: '修改生成配置', activeMenu: '/tool/gen' }

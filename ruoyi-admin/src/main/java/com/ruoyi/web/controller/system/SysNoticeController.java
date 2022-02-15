@@ -9,13 +9,12 @@ import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.common.enums.BusinessType;
 import com.ruoyi.system.domain.SysNotice;
 import com.ruoyi.system.service.ISysNoticeService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * 公告 信息操作处理
@@ -24,7 +23,7 @@ import lombok.RequiredArgsConstructor;
  */
 @Validated
 @Api(value = "公告信息控制器", tags = {"公告信息管理"})
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/system/notice")
 public class SysNoticeController extends BaseController {
@@ -48,7 +47,7 @@ public class SysNoticeController extends BaseController {
     @SaCheckPermission("system:notice:query")
     @GetMapping(value = "/{noticeId}")
     public R<SysNotice> getInfo(@ApiParam("公告ID") @PathVariable Long noticeId) {
-        return R.success(noticeService.selectNoticeById(noticeId));
+        return R.ok(noticeService.selectNoticeById(noticeId));
     }
 
     /**

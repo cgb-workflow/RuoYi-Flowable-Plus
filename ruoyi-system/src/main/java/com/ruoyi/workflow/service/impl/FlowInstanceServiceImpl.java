@@ -1,10 +1,11 @@
 package com.ruoyi.workflow.service.impl;
 
 
-import com.ruoyi.common.core.domain.R;
-import com.ruoyi.common.utils.LoginUtils;
-import com.ruoyi.workflow.domain.vo.FlowTaskVo;
+import com.ruoyi.common.exception.ServiceException;
+import com.ruoyi.common.helper.LoginHelper;
+import com.ruoyi.flowable.common.constant.ProcessConstants;
 import com.ruoyi.flowable.factory.FlowServiceFactory;
+import com.ruoyi.workflow.domain.vo.FlowTaskVo;
 import com.ruoyi.workflow.service.IFlowInstanceService;
 import lombok.extern.slf4j.Slf4j;
 import org.flowable.common.engine.api.FlowableObjectNotFoundException;
@@ -109,19 +110,17 @@ public class FlowInstanceServiceImpl extends FlowServiceFactory implements IFlow
      * @return
      */
     @Override
-    public R startProcessInstanceById(String procDefId, Map<String, Object> variables) {
-
+    public void startProcessInstanceById(String procDefId, Map<String, Object> variables) {
         try {
             // 设置流程发起人Id到流程中
-            Long userId = LoginUtils.getUserId();
-//            identityService.setAuthenticatedUserId(userId.toString());
-            variables.put("initiator", userId);
+            String userIdStr = LoginHelper.getUserId().toString();
+            // identityService.setAuthenticatedUserId(userId.toString());
+            variables.put(ProcessConstants.PROCESS_INITIATOR, userIdStr);
             variables.put("_FLOWABLE_SKIP_EXPRESSION_ENABLED", true);
             runtimeService.startProcessInstanceById(procDefId, variables);
-            return R.success("流程启动成功");
         } catch (Exception e) {
             e.printStackTrace();
-            return R.error("流程启动错误");
+            throw new ServiceException("流程启动错误");
         }
     }
 }

@@ -15,7 +15,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,7 +29,7 @@ import java.util.Map;
  */
 @Validated
 @Api(value = "部门控制器", tags = {"部门管理"})
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/system/dept")
 public class SysDeptController extends BaseController {
@@ -45,7 +44,7 @@ public class SysDeptController extends BaseController {
     @GetMapping("/list")
     public R<List<SysDept>> list(SysDept dept) {
         List<SysDept> depts = deptService.selectDeptList(dept);
-        return R.success(depts);
+        return R.ok(depts);
     }
 
     /**
@@ -57,8 +56,8 @@ public class SysDeptController extends BaseController {
     public R<List<SysDept>> excludeChild(@ApiParam("部门ID") @PathVariable(value = "deptId", required = false) Long deptId) {
         List<SysDept> depts = deptService.selectDeptList(new SysDept());
         depts.removeIf(d -> d.getDeptId().equals(deptId)
-                || ArrayUtil.contains(StringUtils.split(d.getAncestors(), ","), deptId + ""));
-        return R.success(depts);
+            || ArrayUtil.contains(StringUtils.split(d.getAncestors(), ","), deptId + ""));
+        return R.ok(depts);
     }
 
     /**
@@ -69,7 +68,7 @@ public class SysDeptController extends BaseController {
     @GetMapping(value = "/{deptId}")
     public R<SysDept> getInfo(@ApiParam("部门ID") @PathVariable Long deptId) {
         deptService.checkDeptDataScope(deptId);
-        return R.success(deptService.selectDeptById(deptId));
+        return R.ok(deptService.selectDeptById(deptId));
     }
 
     /**
@@ -79,7 +78,7 @@ public class SysDeptController extends BaseController {
     @GetMapping("/treeselect")
     public R<List<Tree<Long>>> treeselect(SysDept dept) {
         List<SysDept> depts = deptService.selectDeptList(dept);
-        return R.success(deptService.buildDeptTreeSelect(depts));
+        return R.ok(deptService.buildDeptTreeSelect(depts));
     }
 
     /**
@@ -92,7 +91,7 @@ public class SysDeptController extends BaseController {
         Map<String, Object> ajax = new HashMap<>();
         ajax.put("checkedKeys", deptService.selectDeptListByRoleId(roleId));
         ajax.put("depts", deptService.buildDeptTreeSelect(depts));
-        return R.success(ajax);
+        return R.ok(ajax);
     }
 
     /**
@@ -104,7 +103,7 @@ public class SysDeptController extends BaseController {
     @PostMapping
     public R<Void> add(@Validated @RequestBody SysDept dept) {
         if (UserConstants.NOT_UNIQUE.equals(deptService.checkDeptNameUnique(dept))) {
-            return R.error("新增部门'" + dept.getDeptName() + "'失败，部门名称已存在");
+            return R.fail("新增部门'" + dept.getDeptName() + "'失败，部门名称已存在");
         }
         return toAjax(deptService.insertDept(dept));
     }
@@ -117,13 +116,15 @@ public class SysDeptController extends BaseController {
     @Log(title = "部门管理", businessType = BusinessType.UPDATE)
     @PutMapping
     public R<Void> edit(@Validated @RequestBody SysDept dept) {
+        Long deptId = dept.getDeptId();
+        deptService.checkDeptDataScope(deptId);
         if (UserConstants.NOT_UNIQUE.equals(deptService.checkDeptNameUnique(dept))) {
-            return R.error("修改部门'" + dept.getDeptName() + "'失败，部门名称已存在");
-        } else if (dept.getParentId().equals(dept.getDeptId())) {
-            return R.error("修改部门'" + dept.getDeptName() + "'失败，上级部门不能是自己");
+            return R.fail("修改部门'" + dept.getDeptName() + "'失败，部门名称已存在");
+        } else if (dept.getParentId().equals(deptId)) {
+            return R.fail("修改部门'" + dept.getDeptName() + "'失败，上级部门不能是自己");
         } else if (StringUtils.equals(UserConstants.DEPT_DISABLE, dept.getStatus())
-                && deptService.selectNormalChildrenDeptById(dept.getDeptId()) > 0) {
-            return R.error("该部门包含未停用的子部门！");
+            && deptService.selectNormalChildrenDeptById(deptId) > 0) {
+            return R.fail("该部门包含未停用的子部门！");
         }
         return toAjax(deptService.updateDept(dept));
     }
@@ -137,11 +138,12 @@ public class SysDeptController extends BaseController {
     @DeleteMapping("/{deptId}")
     public R<Void> remove(@ApiParam("部门ID串") @PathVariable Long deptId) {
         if (deptService.hasChildByDeptId(deptId)) {
-            return R.error("存在下级部门,不允许删除");
+            return R.fail("存在下级部门,不允许删除");
         }
         if (deptService.checkDeptExistUser(deptId)) {
-            return R.error("部门存在用户,不允许删除");
+            return R.fail("部门存在用户,不允许删除");
         }
+        deptService.checkDeptDataScope(deptId);
         return toAjax(deptService.deleteDeptById(deptId));
     }
 }

@@ -59,7 +59,7 @@ public class SysFormController extends BaseController {
     @SaCheckPermission("flowable:form:query")
     @GetMapping(value = "/{formId}")
     public R getInfo(@PathVariable("formId") Long formId) {
-        return R.success(SysFormService.selectSysFormById(formId));
+        return R.ok(SysFormService.selectSysFormById(formId));
     }
 
     /**

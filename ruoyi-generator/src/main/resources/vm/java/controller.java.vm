@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.*;
 import cn.dev33.satoken.annotation.SaCheckPermission;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.validation.annotation.Validated;
 import com.ruoyi.common.annotation.RepeatSubmit;
@@ -40,7 +39,7 @@ import io.swagger.annotations.ApiOperation;
  */
 @Validated
 @Api(value = "${functionName}控制器", tags = {"${functionName}管理"})
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/${moduleName}/${businessName}")
 public class ${ClassName}Controller extends BaseController {
@@ -60,7 +59,7 @@ public class ${ClassName}Controller extends BaseController {
 #elseif($table.tree)
     public R<List<${ClassName}Vo>> list(@Validated(QueryGroup.class) ${ClassName}Bo bo) {
         List<${ClassName}Vo> list = i${ClassName}Service.queryList(bo);
-        return R.success(list);
+        return R.ok(list);
     }
 #end
 
@@ -85,7 +84,7 @@ public class ${ClassName}Controller extends BaseController {
     public R<${ClassName}Vo> getInfo(@ApiParam("主键")
                                                   @NotNull(message = "主键不能为空")
                                                   @PathVariable("${pkColumn.javaField}") ${pkColumn.javaType} ${pkColumn.javaField}) {
-        return R.success(i${ClassName}Service.queryById(${pkColumn.javaField}));
+        return R.ok(i${ClassName}Service.queryById(${pkColumn.javaField}));
     }
 
     /**
@@ -117,7 +116,7 @@ public class ${ClassName}Controller extends BaseController {
      */
     @ApiOperation("删除${functionName}")
     @SaCheckPermission("${permissionPrefix}:remove")
-    @Log(title = "${functionName}" , businessType = BusinessType.DELETE)
+    @Log(title = "${functionName}", businessType = BusinessType.DELETE)
     @DeleteMapping("/{${pkColumn.javaField}s}")
     public R<Void> remove(@ApiParam("主键串")
                                        @NotEmpty(message = "主键不能为空")

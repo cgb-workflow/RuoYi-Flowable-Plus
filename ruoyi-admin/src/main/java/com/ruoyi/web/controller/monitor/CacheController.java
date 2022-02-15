@@ -6,7 +6,6 @@ import com.ruoyi.common.utils.StringUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.RedisServerCommands;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -22,7 +21,7 @@ import java.util.*;
  * @author Lion Li
  */
 @Api(value = "缓存监控", tags = {"缓存监控管理"})
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/monitor/cache")
 public class CacheController {
@@ -52,6 +51,6 @@ public class CacheController {
             });
         }
         result.put("commandStats", pieList);
-        return R.success(result);
+        return R.ok(result);
     }
 }

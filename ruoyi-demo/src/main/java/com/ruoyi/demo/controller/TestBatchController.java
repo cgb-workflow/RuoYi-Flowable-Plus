@@ -8,7 +8,6 @@ import com.ruoyi.demo.mapper.TestDemoMapper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,7 +23,7 @@ import java.util.List;
  * @date 2021-05-30
  */
 @Api(value = "测试批量方法", tags = {"测试批量方法"})
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/demo/batch")
 public class TestBatchController extends BaseController {
@@ -36,7 +35,7 @@ public class TestBatchController extends BaseController {
 
     /**
      * 新增批量方法 可完美替代 saveBatch 秒级插入上万数据 (对mysql负荷较大)
-     *
+     * <p>
      * 3.5.0 版本 增加 rewriteBatchedStatements=true 批处理参数 使 MP 原生批处理可以达到同样的速度
      */
     @ApiOperation(value = "新增批量方法")
@@ -45,14 +44,18 @@ public class TestBatchController extends BaseController {
     public R<Void> add() {
         List<TestDemo> list = new ArrayList<>();
         for (int i = 0; i < 1000; i++) {
-            list.add(new TestDemo().setOrderNum(-1L).setTestKey("批量新增").setValue("测试新增"));
+            TestDemo testDemo = new TestDemo();
+            testDemo.setOrderNum(-1L);
+            testDemo.setTestKey("批量新增");
+            testDemo.setValue("测试新增");
+            list.add(testDemo);
         }
         return toAjax(testDemoMapper.insertBatch(list) ? 1 : 0);
     }
 
     /**
      * 新增或更新 可完美替代 saveOrUpdateBatch 高性能
-     *
+     * <p>
      * 3.5.0 版本 增加 rewriteBatchedStatements=true 批处理参数 使 MP 原生批处理可以达到同样的速度
      */
     @ApiOperation(value = "新增或更新批量方法")
@@ -61,12 +64,16 @@ public class TestBatchController extends BaseController {
     public R<Void> addOrUpdate() {
         List<TestDemo> list = new ArrayList<>();
         for (int i = 0; i < 1000; i++) {
-            list.add(new TestDemo().setOrderNum(-1L).setTestKey("批量新增").setValue("测试新增"));
-        }
+            TestDemo testDemo = new TestDemo();
+            testDemo.setOrderNum(-1L);
+            testDemo.setTestKey("批量新增");
+            testDemo.setValue("测试新增");
+            list.add(testDemo);        }
         testDemoMapper.insertBatch(list);
         for (int i = 0; i < list.size(); i++) {
             TestDemo testDemo = list.get(i);
-            testDemo.setTestKey("批量新增或修改").setValue("批量新增或修改");
+            testDemo.setTestKey("批量新增或修改");
+            testDemo.setValue("批量新增或修改");
             if (i % 2 == 0) {
                 testDemo.setId(null);
             }

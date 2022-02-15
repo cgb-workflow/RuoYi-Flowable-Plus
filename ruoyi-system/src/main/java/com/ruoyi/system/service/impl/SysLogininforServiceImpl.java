@@ -99,8 +99,9 @@ public class SysLogininforServiceImpl implements ISysLogininforService, Logininf
             .like(StringUtils.isNotBlank(logininfor.getUserName()), SysLogininfor::getUserName, logininfor.getUserName())
             .between(params.get("beginTime") != null && params.get("endTime") != null,
                 SysLogininfor::getLoginTime, params.get("beginTime"), params.get("endTime"));
-        if(StringUtils.isBlank(pageQuery.getOrderByColumn())) {
-            pageQuery.setOrderByColumn("info_id").setIsAsc("desc");
+        if (StringUtils.isBlank(pageQuery.getOrderByColumn())) {
+            pageQuery.setOrderByColumn("info_id");
+            pageQuery.setIsAsc("desc");
         }
         Page<SysLogininfor> page = baseMapper.selectPage(pageQuery.build(), lqw);
         return TableDataInfo.build(page);
@@ -139,7 +140,7 @@ public class SysLogininforServiceImpl implements ISysLogininforService, Logininf
      * 批量删除系统登录日志
      *
      * @param infoIds 需要删除的登录日志ID
-     * @return
+     * @return 结果
      */
     @Override
     public int deleteLogininforByIds(Long[] infoIds) {

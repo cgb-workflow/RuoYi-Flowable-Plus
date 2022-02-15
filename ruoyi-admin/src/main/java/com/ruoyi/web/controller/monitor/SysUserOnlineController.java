@@ -17,7 +17,6 @@ import com.ruoyi.system.domain.SysUserOnline;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -31,7 +30,7 @@ import java.util.stream.Collectors;
  * @author Lion Li
  */
 @Api(value = "在线用户监控", tags = {"在线用户监控管理"})
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/monitor/online")
 public class SysUserOnlineController extends BaseController {
@@ -58,7 +57,7 @@ public class SysUserOnlineController extends BaseController {
             ).collect(Collectors.toList());
         } else if (StringUtils.isNotEmpty(ipaddr)) {
             userOnlineDTOList = userOnlineDTOList.stream().filter(userOnline ->
-                StringUtils.equals(ipaddr, userOnline.getIpaddr()))
+                    StringUtils.equals(ipaddr, userOnline.getIpaddr()))
                 .collect(Collectors.toList());
         } else if (StringUtils.isNotEmpty(userName)) {
             userOnlineDTOList = userOnlineDTOList.stream().filter(userOnline ->
@@ -83,6 +82,6 @@ public class SysUserOnlineController extends BaseController {
             StpUtil.kickoutByTokenValue(tokenId);
         } catch (NotLoginException e) {
         }
-        return R.success();
+        return R.ok();
     }
 }

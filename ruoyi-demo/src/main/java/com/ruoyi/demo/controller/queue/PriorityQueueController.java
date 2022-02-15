@@ -8,7 +8,6 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @Slf4j
 @Api(value = "优先队列 演示案例", tags = {"优先队列"})
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/demo/queue/priority")
 public class PriorityQueueController {
@@ -43,18 +42,20 @@ public class PriorityQueueController {
             log.info("通道: {} , 设置比较器成功", queueName);
         } else {
             log.info("通道: {} , 设置比较器失败", queueName);
-            return R.error("操作失败");
+            return R.fail("操作失败");
         }
         for (int i = 0; i < 10; i++) {
             int randomNum = RandomUtil.randomInt(10);
-            PriorityDemo data = new PriorityDemo().setName("data-" + i).setOrderNum(randomNum);
+            PriorityDemo data = new PriorityDemo();
+            data.setName("data-" + i);
+            data.setOrderNum(randomNum);
             if (QueueUtils.addPriorityQueueObject(queueName, data)) {
                 log.info("通道: {} , 发送数据: {}", queueName, data);
             } else {
                 log.info("通道: {} , 发送数据: {}, 发送失败", queueName, data);
             }
         }
-        return R.success("操作成功");
+        return R.ok("操作成功");
     }
 
     @ApiOperation("删除队列数据")
@@ -62,13 +63,15 @@ public class PriorityQueueController {
     public R<Void> remove(@ApiParam("队列名") String queueName,
                                    @ApiParam("对象名") String name,
                                    @ApiParam("排序号") Integer orderNum) {
-        PriorityDemo data = new PriorityDemo().setName(name).setOrderNum(orderNum);
+        PriorityDemo data = new PriorityDemo();
+        data.setName(name);
+        data.setOrderNum(orderNum);
         if (QueueUtils.removePriorityQueueObject(queueName, data)) {
             log.info("通道: {} , 删除数据: {}", queueName, data);
         } else {
-            return R.error("操作失败");
+            return R.fail("操作失败");
         }
-        return R.success("操作成功");
+        return R.ok("操作成功");
     }
 
     @ApiOperation("获取队列数据")
@@ -79,7 +82,7 @@ public class PriorityQueueController {
             data = QueueUtils.getPriorityQueueObject(queueName);
             log.info("通道: {} , 获取数据: {}", queueName, data);
         } while (data != null);
-        return R.success("操作成功");
+        return R.ok("操作成功");
     }
 
 }

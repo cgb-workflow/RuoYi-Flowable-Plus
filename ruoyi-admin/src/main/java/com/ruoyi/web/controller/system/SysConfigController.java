@@ -15,7 +15,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,7 +28,7 @@ import java.util.List;
  */
 @Validated
 @Api(value = "参数配置控制器", tags = {"参数配置管理"})
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/system/config")
 public class SysConfigController extends BaseController {
@@ -62,7 +61,7 @@ public class SysConfigController extends BaseController {
     @SaCheckPermission("system:config:query")
     @GetMapping(value = "/{configId}")
     public R<SysConfig> getInfo(@ApiParam("参数ID") @PathVariable Long configId) {
-        return R.success(configService.selectConfigById(configId));
+        return R.ok(configService.selectConfigById(configId));
     }
 
     /**
@@ -71,7 +70,7 @@ public class SysConfigController extends BaseController {
     @ApiOperation("根据参数键名查询参数值")
     @GetMapping(value = "/configKey/{configKey}")
     public R<Void> getConfigKey(@ApiParam("参数Key") @PathVariable String configKey) {
-        return R.success(configService.selectConfigByKey(configKey));
+        return R.ok(configService.selectConfigByKey(configKey));
     }
 
     /**
@@ -83,7 +82,7 @@ public class SysConfigController extends BaseController {
     @PostMapping
     public R<Void> add(@Validated @RequestBody SysConfig config) {
         if (UserConstants.NOT_UNIQUE.equals(configService.checkConfigKeyUnique(config))) {
-            return R.error("新增参数'" + config.getConfigName() + "'失败，参数键名已存在");
+            return R.fail("新增参数'" + config.getConfigName() + "'失败，参数键名已存在");
         }
         return toAjax(configService.insertConfig(config));
     }
@@ -97,8 +96,19 @@ public class SysConfigController extends BaseController {
     @PutMapping
     public R<Void> edit(@Validated @RequestBody SysConfig config) {
         if (UserConstants.NOT_UNIQUE.equals(configService.checkConfigKeyUnique(config))) {
-            return R.error("修改参数'" + config.getConfigName() + "'失败，参数键名已存在");
+            return R.fail("修改参数'" + config.getConfigName() + "'失败，参数键名已存在");
         }
+        return toAjax(configService.updateConfig(config));
+    }
+
+    /**
+     * 根据参数键名修改参数配置
+     */
+    @ApiOperation("根据参数键名修改参数配置")
+    @SaCheckPermission("system:config:edit")
+    @Log(title = "参数管理", businessType = BusinessType.UPDATE)
+    @PutMapping("/updateByKey")
+    public R<Void> updateByKey(@RequestBody SysConfig config) {
         return toAjax(configService.updateConfig(config));
     }
 
@@ -111,7 +121,7 @@ public class SysConfigController extends BaseController {
     @DeleteMapping("/{configIds}")
     public R<Void> remove(@ApiParam("参数ID串") @PathVariable Long[] configIds) {
         configService.deleteConfigByIds(configIds);
-        return success();
+        return R.ok();
     }
 
     /**
@@ -123,6 +133,6 @@ public class SysConfigController extends BaseController {
     @DeleteMapping("/refreshCache")
     public R<Void> refreshCache() {
         configService.resetConfigCache();
-        return R.success();
+        return R.ok();
     }
 }

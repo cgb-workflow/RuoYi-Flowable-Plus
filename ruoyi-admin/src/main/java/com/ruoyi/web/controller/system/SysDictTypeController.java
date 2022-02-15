@@ -15,7 +15,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,7 +28,7 @@ import java.util.List;
  */
 @Validated
 @Api(value = "数据字典信息控制器", tags = {"数据字典信息管理"})
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/system/dict/type")
 public class SysDictTypeController extends BaseController {
@@ -59,7 +58,7 @@ public class SysDictTypeController extends BaseController {
     @SaCheckPermission("system:dict:query")
     @GetMapping(value = "/{dictId}")
     public R<SysDictType> getInfo(@ApiParam("字典ID") @PathVariable Long dictId) {
-        return R.success(dictTypeService.selectDictTypeById(dictId));
+        return R.ok(dictTypeService.selectDictTypeById(dictId));
     }
 
     /**
@@ -71,7 +70,7 @@ public class SysDictTypeController extends BaseController {
     @PostMapping
     public R<Void> add(@Validated @RequestBody SysDictType dict) {
         if (UserConstants.NOT_UNIQUE.equals(dictTypeService.checkDictTypeUnique(dict))) {
-            return R.error("新增字典'" + dict.getDictName() + "'失败，字典类型已存在");
+            return R.fail("新增字典'" + dict.getDictName() + "'失败，字典类型已存在");
         }
         return toAjax(dictTypeService.insertDictType(dict));
     }
@@ -85,7 +84,7 @@ public class SysDictTypeController extends BaseController {
     @PutMapping
     public R<Void> edit(@Validated @RequestBody SysDictType dict) {
         if (UserConstants.NOT_UNIQUE.equals(dictTypeService.checkDictTypeUnique(dict))) {
-            return R.error("修改字典'" + dict.getDictName() + "'失败，字典类型已存在");
+            return R.fail("修改字典'" + dict.getDictName() + "'失败，字典类型已存在");
         }
         return toAjax(dictTypeService.updateDictType(dict));
     }
@@ -99,7 +98,7 @@ public class SysDictTypeController extends BaseController {
     @DeleteMapping("/{dictIds}")
     public R<Void> remove(@ApiParam("字典ID串") @PathVariable Long[] dictIds) {
         dictTypeService.deleteDictTypeByIds(dictIds);
-        return success();
+        return R.ok();
     }
 
     /**
@@ -111,7 +110,7 @@ public class SysDictTypeController extends BaseController {
     @DeleteMapping("/refreshCache")
     public R<Void> refreshCache() {
         dictTypeService.resetDictCache();
-        return R.success();
+        return R.ok();
     }
 
     /**
@@ -121,6 +120,6 @@ public class SysDictTypeController extends BaseController {
     @GetMapping("/optionselect")
     public R<List<SysDictType>> optionselect() {
         List<SysDictType> dictTypes = dictTypeService.selectDictTypeAll();
-        return R.success(dictTypes);
+        return R.ok(dictTypes);
     }
 }

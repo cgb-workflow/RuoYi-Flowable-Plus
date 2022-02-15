@@ -14,7 +14,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,7 +28,7 @@ import java.util.Map;
  */
 @Validated
 @Api(value = "菜单信息控制器", tags = {"菜单信息管理"})
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/system/menu")
 public class SysMenuController extends BaseController {
@@ -44,7 +43,7 @@ public class SysMenuController extends BaseController {
     @GetMapping("/list")
     public R<List<SysMenu>> list(SysMenu menu) {
         List<SysMenu> menus = menuService.selectMenuList(menu, getUserId());
-        return R.success(menus);
+        return R.ok(menus);
     }
 
     /**
@@ -54,7 +53,7 @@ public class SysMenuController extends BaseController {
     @SaCheckPermission("system:menu:query")
     @GetMapping(value = "/{menuId}")
     public R<SysMenu> getInfo(@ApiParam("菜单ID") @PathVariable Long menuId) {
-        return R.success(menuService.selectMenuById(menuId));
+        return R.ok(menuService.selectMenuById(menuId));
     }
 
     /**
@@ -64,7 +63,7 @@ public class SysMenuController extends BaseController {
     @GetMapping("/treeselect")
     public R<List<Tree<Long>>> treeselect(SysMenu menu) {
         List<SysMenu> menus = menuService.selectMenuList(menu, getUserId());
-        return R.success(menuService.buildMenuTreeSelect(menus));
+        return R.ok(menuService.buildMenuTreeSelect(menus));
     }
 
     /**
@@ -77,7 +76,7 @@ public class SysMenuController extends BaseController {
         Map<String, Object> ajax = new HashMap<>();
         ajax.put("checkedKeys", menuService.selectMenuListByRoleId(roleId));
         ajax.put("menus", menuService.buildMenuTreeSelect(menus));
-        return R.success(ajax);
+        return R.ok(ajax);
     }
 
     /**
@@ -89,9 +88,9 @@ public class SysMenuController extends BaseController {
     @PostMapping
     public R<Void> add(@Validated @RequestBody SysMenu menu) {
         if (UserConstants.NOT_UNIQUE.equals(menuService.checkMenuNameUnique(menu))) {
-            return R.error("新增菜单'" + menu.getMenuName() + "'失败，菜单名称已存在");
+            return R.fail("新增菜单'" + menu.getMenuName() + "'失败，菜单名称已存在");
         } else if (UserConstants.YES_FRAME.equals(menu.getIsFrame()) && !StringUtils.ishttp(menu.getPath())) {
-            return R.error("新增菜单'" + menu.getMenuName() + "'失败，地址必须以http(s)://开头");
+            return R.fail("新增菜单'" + menu.getMenuName() + "'失败，地址必须以http(s)://开头");
         }
         return toAjax(menuService.insertMenu(menu));
     }
@@ -105,11 +104,11 @@ public class SysMenuController extends BaseController {
     @PutMapping
     public R<Void> edit(@Validated @RequestBody SysMenu menu) {
         if (UserConstants.NOT_UNIQUE.equals(menuService.checkMenuNameUnique(menu))) {
-            return R.error("修改菜单'" + menu.getMenuName() + "'失败，菜单名称已存在");
+            return R.fail("修改菜单'" + menu.getMenuName() + "'失败，菜单名称已存在");
         } else if (UserConstants.YES_FRAME.equals(menu.getIsFrame()) && !StringUtils.ishttp(menu.getPath())) {
-            return R.error("修改菜单'" + menu.getMenuName() + "'失败，地址必须以http(s)://开头");
+            return R.fail("修改菜单'" + menu.getMenuName() + "'失败，地址必须以http(s)://开头");
         } else if (menu.getMenuId().equals(menu.getParentId())) {
-            return R.error("修改菜单'" + menu.getMenuName() + "'失败，上级菜单不能选择自己");
+            return R.fail("修改菜单'" + menu.getMenuName() + "'失败，上级菜单不能选择自己");
         }
         return toAjax(menuService.updateMenu(menu));
     }
@@ -123,10 +122,10 @@ public class SysMenuController extends BaseController {
     @DeleteMapping("/{menuId}")
     public R<Void> remove(@ApiParam("菜单ID") @PathVariable("menuId") Long menuId) {
         if (menuService.hasChildByMenuId(menuId)) {
-            return R.error("存在子菜单,不允许删除");
+            return R.fail("存在子菜单,不允许删除");
         }
         if (menuService.checkMenuExistRole(menuId)) {
-            return R.error("菜单已分配,不允许删除");
+            return R.fail("菜单已分配,不允许删除");
         }
         return toAjax(menuService.deleteMenuById(menuId));
     }

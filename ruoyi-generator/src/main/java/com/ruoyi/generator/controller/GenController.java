@@ -16,7 +16,6 @@ import com.ruoyi.generator.service.IGenTableService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,7 +32,7 @@ import java.util.Map;
  */
 @Validated
 @Api(value = "代码生成", tags = {"代码生成管理"})
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/tool/gen")
 public class GenController extends BaseController {
@@ -65,7 +64,7 @@ public class GenController extends BaseController {
         map.put("info", table);
         map.put("rows", list);
         map.put("tables", tables);
-        return R.success(map);
+        return R.ok(map);
     }
 
     /**
@@ -104,7 +103,7 @@ public class GenController extends BaseController {
         // 查询表信息
         List<GenTable> tableList = genTableService.selectDbTableListByNames(tableNames);
         genTableService.importGenTable(tableList);
-        return R.success();
+        return R.ok();
     }
 
     /**
@@ -117,7 +116,7 @@ public class GenController extends BaseController {
     public R<Void> editSave(@Validated @RequestBody GenTable genTable) {
         genTableService.validateEdit(genTable);
         genTableService.updateGenTable(genTable);
-        return R.success();
+        return R.ok();
     }
 
     /**
@@ -129,7 +128,7 @@ public class GenController extends BaseController {
     @DeleteMapping("/{tableIds}")
     public R<Void> remove(@PathVariable Long[] tableIds) {
         genTableService.deleteGenTableByIds(tableIds);
-        return R.success();
+        return R.ok();
     }
 
     /**
@@ -140,7 +139,7 @@ public class GenController extends BaseController {
     @GetMapping("/preview/{tableId}")
     public R<Map<String, String>> preview(@PathVariable("tableId") Long tableId) throws IOException {
         Map<String, String> dataMap = genTableService.previewCode(tableId);
-        return R.success(dataMap);
+        return R.ok(dataMap);
     }
 
     /**
@@ -164,7 +163,7 @@ public class GenController extends BaseController {
     @GetMapping("/genCode/{tableName}")
     public R<Void> genCode(@PathVariable("tableName") String tableName) {
         genTableService.generatorCode(tableName);
-        return R.success();
+        return R.ok();
     }
 
     /**
@@ -176,7 +175,7 @@ public class GenController extends BaseController {
     @GetMapping("/synchDb/{tableName}")
     public R<Void> synchDb(@PathVariable("tableName") String tableName) {
         genTableService.synchDb(tableName);
-        return R.success();
+        return R.ok();
     }
 
     /**
