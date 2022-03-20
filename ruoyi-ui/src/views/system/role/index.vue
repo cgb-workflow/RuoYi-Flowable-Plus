@@ -1,12 +1,11 @@
 <template>
   <div class="app-container">
-    <el-form :model="queryParams" ref="queryForm" v-show="showSearch" :inline="true">
+    <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch">
       <el-form-item label="角色名称" prop="roleName">
         <el-input
           v-model="queryParams.roleName"
           placeholder="请输入角色名称"
           clearable
-          size="small"
           style="width: 240px"
           @keyup.enter.native="handleQuery"
         />
@@ -16,7 +15,6 @@
           v-model="queryParams.roleKey"
           placeholder="请输入权限字符"
           clearable
-          size="small"
           style="width: 240px"
           @keyup.enter.native="handleQuery"
         />
@@ -26,7 +24,6 @@
           v-model="queryParams.status"
           placeholder="角色状态"
           clearable
-          size="small"
           style="width: 240px"
         >
           <el-option
@@ -40,7 +37,6 @@
       <el-form-item label="创建时间">
         <el-date-picker
           v-model="dateRange"
-          size="small"
           style="width: 240px"
           value-format="yyyy-MM-dd"
           type="daterange"
@@ -191,14 +187,14 @@
         <el-form-item label="菜单权限">
           <el-checkbox v-model="menuExpand" @change="handleCheckedTreeExpand($event, 'menu')">展开/折叠</el-checkbox>
           <el-checkbox v-model="menuNodeAll" @change="handleCheckedTreeNodeAll($event, 'menu')">全选/全不选</el-checkbox>
-          <el-checkbox v-model="form.menuCheckStrictly" @change="handleCheckedTreeConnect($event, 'menu')">父子联动</el-checkbox>
+          <el-checkbox v-model="form.menuCheckStrictly == 1" @change="handleCheckedTreeConnect($event, 'menu')">父子联动</el-checkbox>
           <el-tree
             class="tree-border"
             :data="menuOptions"
             show-checkbox
             ref="menu"
             node-key="id"
-            :check-strictly="!form.menuCheckStrictly"
+            :check-strictly="!form.menuCheckStrictly == 1"
             empty-text="加载中，请稍候"
             :props="defaultProps"
           ></el-tree>
@@ -235,7 +231,7 @@
         <el-form-item label="数据权限" v-show="form.dataScope == 2">
           <el-checkbox v-model="deptExpand" @change="handleCheckedTreeExpand($event, 'dept')">展开/折叠</el-checkbox>
           <el-checkbox v-model="deptNodeAll" @change="handleCheckedTreeNodeAll($event, 'dept')">全选/全不选</el-checkbox>
-          <el-checkbox v-model="form.deptCheckStrictly" @change="handleCheckedTreeConnect($event, 'dept')">父子联动</el-checkbox>
+          <el-checkbox v-model="form.deptCheckStrictly == 1" @change="handleCheckedTreeConnect($event, 'dept')">父子联动</el-checkbox>
           <el-tree
             class="tree-border"
             :data="deptOptions"
@@ -243,7 +239,7 @@
             default-expand-all
             ref="dept"
             node-key="id"
-            :check-strictly="!form.deptCheckStrictly"
+            :check-strictly="!form.deptCheckStrictly == 1"
             empty-text="加载中，请稍候"
             :props="defaultProps"
           ></el-tree>
@@ -444,8 +440,8 @@ export default {
         status: "0",
         menuIds: [],
         deptIds: [],
-        menuCheckStrictly: true,
-        deptCheckStrictly: true,
+        menuCheckStrictly: 1,
+        deptCheckStrictly: 1,
         remark: undefined
       };
       this.resetForm("form");
@@ -505,9 +501,9 @@ export default {
     // 树权限（父子联动）
     handleCheckedTreeConnect(value, type) {
       if (type == 'menu') {
-        this.form.menuCheckStrictly = value ? true: false;
+        this.form.menuCheckStrictly = value ? 1: 0;
       } else if (type == 'dept') {
-        this.form.deptCheckStrictly = value ? true: false;
+        this.form.deptCheckStrictly = value ? 1: 0;
       }
     },
     /** 新增按钮操作 */
