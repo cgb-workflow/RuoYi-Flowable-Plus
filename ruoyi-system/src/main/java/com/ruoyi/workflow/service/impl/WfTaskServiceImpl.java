@@ -1,6 +1,8 @@
 package com.ruoyi.workflow.service.impl;
 
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.common.collect.Lists;
@@ -20,14 +22,14 @@ import com.ruoyi.flowable.flow.FindNextNodeUtil;
 import com.ruoyi.flowable.flow.FlowableUtils;
 import com.ruoyi.system.service.ISysRoleService;
 import com.ruoyi.system.service.ISysUserService;
+import com.ruoyi.workflow.domain.bo.WfTaskBo;
 import com.ruoyi.workflow.domain.dto.WfCommentDto;
 import com.ruoyi.workflow.domain.dto.WfNextDto;
-import com.ruoyi.workflow.domain.vo.WfTaskVo;
-import com.ruoyi.workflow.domain.bo.WfTaskBo;
-import com.ruoyi.workflow.domain.vo.WfViewerVo;
 import com.ruoyi.workflow.domain.vo.WfFormVo;
-import com.ruoyi.workflow.service.IWfTaskService;
+import com.ruoyi.workflow.domain.vo.WfTaskVo;
+import com.ruoyi.workflow.domain.vo.WfViewerVo;
 import com.ruoyi.workflow.service.IWfDeployFormService;
+import com.ruoyi.workflow.service.IWfTaskService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -736,7 +738,7 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
         }
         // 第一次申请获取初始化表单
         if (StringUtils.isNotBlank(deployId)) {
-            WfFormVo formVo = deployFormService.selectSysDeployFormByDeployId(deployId);
+            WfFormVo formVo = deployFormService.selectDeployFormByDeployId(deployId);
             if (Objects.isNull(formVo)) {
                 throw new ServiceException("请先配置流程表单");
             }
@@ -816,16 +818,76 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
         // 构建查询条件
         HistoricActivityInstanceQuery query = historyService.createHistoricActivityInstanceQuery()
             .processInstanceId(procInsId);
-        // 获取流程实例已完成的节点
-        List<String> finishedTaskList = query.finished().list()
-            .stream().distinct().map(HistoricActivityInstance::getActivityId)
-            .collect(Collectors.toList());
-        // 获取流程实例正在待办的节点
-        List<String> unfinishedTaskList = query.unfinished().list()
-            .stream().distinct().map(HistoricActivityInstance::getActivityId)
-            .collect(Collectors.toList());
-        // 构建视图类
-        return new WfViewerVo(finishedTaskList, unfinishedTaskList);
+        List<HistoricActivityInstance> allActivityInstanceList = query.list();
+        if (CollUtil.isEmpty(allActivityInstanceList)) {
+            return new WfViewerVo();
+        }
+        // 获取流程发布Id信息
+        String processDefinitionId = allActivityInstanceList.get(0).getProcessDefinitionId();
+        BpmnModel bpmnModel = repositoryService.getBpmnModel(processDefinitionId);
+        if (ObjectUtil.isNull(bpmnModel)) {
+            throw new ServiceException("流程模型不存在");
+        }
+        Map<String, List<String>> sequenceElementMap = new HashMap<>();
+        Map<String, String> sequenceFlowMap = new HashMap<>();
+        Collection<FlowElement> flowElements = bpmnModel.getMainProcess().getFlowElements();
+        for (FlowElement flowElement : flowElements) {
+            if (flowElement instanceof SequenceFlow) {
+                SequenceFlow sequenceFlow = (SequenceFlow) flowElement;
+                String sourceRef = sequenceFlow.getSourceRef();
+                String targetRef = sequenceFlow.getTargetRef();
+                List<String> targetRefList = sequenceElementMap.get(sourceRef);
+                if (CollUtil.isEmpty(targetRefList)) {
+                    sequenceElementMap.put(sourceRef, ListUtil.toList(targetRef));
+                } else {
+                    targetRefList.add(targetRef);
+                }
+                sequenceFlowMap.put(sourceRef + targetRef, sequenceFlow.getId());
+            }
+        }
+        // 查询所有已完成的元素
+        List<HistoricActivityInstance> finishedElementList = allActivityInstanceList.stream()
+            .filter(item -> ObjectUtil.isNotNull(item.getEndTime())).collect(Collectors.toList());
+        // 所有已完成的连线
+        Set<String> finishedSequenceFlowSet = new HashSet<>();
+        // 所有已完成的任务节点
+        Set<String> finishedTaskSet = new HashSet<>();
+        finishedElementList.forEach(item -> {
+            if ("sequenceFlow".equals(item.getActivityType())) {
+                finishedSequenceFlowSet.add(item.getActivityId());
+            } else {
+                finishedTaskSet.add(item.getActivityId());
+            }
+        });
+        // 查询所有未结束的节点
+        Set<String> unfinishedTaskSet = allActivityInstanceList.stream()
+            .filter(item -> ObjectUtil.isNull(item.getEndTime()))
+            .map(HistoricActivityInstance::getActivityId)
+            .collect(Collectors.toSet());
+
+        Set<String> rejectedTaskSet = new LinkedHashSet<>();
+        Set<String> sourceTaskSet = unfinishedTaskSet;
+        while (CollUtil.isNotEmpty(sourceTaskSet)) {
+            Set<String> nextIdSet = new HashSet<>();
+            for (String previousId : sourceTaskSet) {
+                List<String> nextIdList = sequenceElementMap.get(previousId);
+                if (CollUtil.isEmpty(nextIdList)) {
+                    continue;
+                }
+                nextIdList.forEach(nextId -> {
+                    if (finishedTaskSet.contains(nextId)) {
+                        nextIdSet.add(nextId);
+                        String rejectedSequenceFlow = sequenceFlowMap.get(previousId + nextId);
+                        if (finishedSequenceFlowSet.contains(rejectedSequenceFlow)) {
+                            nextIdSet.add(rejectedSequenceFlow);
+                        }
+                    }
+                });
+            }
+            rejectedTaskSet.addAll(nextIdSet);
+            sourceTaskSet = nextIdSet;
+        }
+        return new WfViewerVo(finishedTaskSet, finishedSequenceFlowSet, unfinishedTaskSet, rejectedTaskSet);
     }
 
     /**
