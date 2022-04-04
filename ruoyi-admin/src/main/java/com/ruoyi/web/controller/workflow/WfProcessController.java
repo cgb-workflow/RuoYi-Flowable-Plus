@@ -6,6 +6,7 @@ import com.ruoyi.common.core.domain.PageQuery;
 import com.ruoyi.common.core.domain.R;
 import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.workflow.domain.vo.WfDefinitionVo;
+import com.ruoyi.workflow.domain.vo.WfTaskVo;
 import com.ruoyi.workflow.service.IWfProcessService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -46,5 +47,26 @@ public class WfProcessController extends BaseController {
         processService.startProcess(processDefId, variables);
         return R.ok("流程启动成功");
 
+    }
+
+    @ApiOperation(value = "我拥有的流程", response = WfTaskVo.class)
+    @SaCheckPermission("workflow:process:ownList")
+    @GetMapping(value = "/ownList")
+    public TableDataInfo<WfTaskVo> ownProcess(PageQuery pageQuery) {
+        return processService.queryPageOwnProcessList(pageQuery);
+    }
+
+    @ApiOperation(value = "获取待办列表", response = WfTaskVo.class)
+    @SaCheckPermission("workflow:process:todoList")
+    @GetMapping(value = "/todoList")
+    public TableDataInfo<WfTaskVo> todoProcess(PageQuery pageQuery) {
+        return processService.queryPageTodoProcessList(pageQuery);
+    }
+
+    @ApiOperation(value = "获取已办列表", response = WfTaskVo.class)
+    @SaCheckPermission("workflow:process:finishedList")
+    @GetMapping(value = "/finishedList")
+    public TableDataInfo<WfTaskVo> finishedProcess(PageQuery pageQuery) {
+        return processService.queryPageFinishedProcessList(pageQuery);
     }
 }

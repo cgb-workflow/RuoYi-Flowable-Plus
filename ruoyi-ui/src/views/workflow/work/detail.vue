@@ -1,20 +1,45 @@
 <template>
   <div class="app-container">
-    <el-tabs tab-position="top" v-model="activeTagName">
-      <el-tab-pane label="基础信息" name="basicInfo">
-        <el-card class="box-card">
+    <el-tabs tab-position="top">
+      <el-tab-pane label="任务办理" v-if="finished === 'true'">
+        <el-card class="box-card" shadow="never">
+          <el-row>
+            <el-col :span="20" :offset="2">
+              <el-form ref="taskForm" :model="taskForm" :rules="rules" label-width="80px">
+                <el-form-item label="审批意见" prop="comment">
+                  <el-input type="textarea" :rows="5" v-model="taskForm.comment" placeholder="请输入 审批意见" />
+                </el-form-item>
+              </el-form>
+            </el-col>
+          </el-row>
+          <el-row :gutter="10" type="flex" justify="center" >
+            <el-col :span="1.5">
+              <el-button icon="el-icon-circle-check" type="success" @click="handleComplete">通过</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button icon="el-icon-chat-line-square" type="primary" @click="handleDelegate">委派</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button icon="el-icon-thumb" type="success" @click="handleTransfer">转办</el-button>
+            </el-col>
+<!--            <el-col :span="2">-->
+<!--              <el-button  icon="el-icon-edit-outline" type="primary"" @click="handle">签收</el-button>-->
+<!--            </el-col>-->
+            <el-col :span="1.5">
+              <el-button icon="el-icon-refresh-left" type="warning" @click="handleReturn">退回</el-button>
+            </el-col>
+            <el-col :span="1.5">
+              <el-button icon="el-icon-circle-close" type="danger" @click="handleReject">驳回</el-button>
+            </el-col>
+          </el-row>
+        </el-card>
+      </el-tab-pane>
+      <el-tab-pane label="表单信息">
+        <el-card class="box-card" shadow="never">
           <!--流程处理表单模块-->
-          <el-col :span="16" :offset="6" v-if="variableOpen">
+          <el-col :span="20" :offset="2" v-if="variableOpen">
             <div>
               <parser :key="new Date().getTime()" :form-conf="variablesData"/>
-            </div>
-            <div style="margin-left:10%;margin-bottom: 20px;font-size: 14px;" v-if="finished === 'true'">
-              <el-button icon="el-icon-edit-outline" type="success" size="mini" @click="handleComplete">审批</el-button>
-              <!--                <el-button  icon="el-icon-edit-outline" type="primary" size="mini" @click="handleDelegate">委派</el-button>-->
-              <!--                <el-button  icon="el-icon-edit-outline" type="primary" size="mini" @click="handleAssign">转办</el-button>-->
-              <!--                <el-button  icon="el-icon-edit-outline" type="primary" size="mini" @click="handleDelegate">签收</el-button>-->
-              <el-button icon="el-icon-refresh-left" type="warning" size="mini" @click="handleReturn">退回</el-button>
-              <el-button icon="el-icon-circle-close" type="danger" size="mini" @click="handleReject">驳回</el-button>
             </div>
           </el-col>
 
@@ -26,44 +51,29 @@
           </el-col>
         </el-card>
       </el-tab-pane >
-      <el-tab-pane label="流转记录" name="flowRecord">
-        <el-card class="box-card">
-          <el-col :span="16" :offset="4">
+
+      <el-tab-pane label="流转记录">
+        <el-card class="box-card" shadow="never">
+          <el-col :span="18" :offset="3">
             <div class="block">
               <el-timeline>
-                <el-timeline-item v-for="(item,index ) in flowRecordList" :key="index" :icon="setIcon(item.finishTime)" :color="setColor(item.finishTime)">
+                <el-timeline-item v-for="(item,index) in flowRecordList" :key="index" :icon="setIcon(item.finishTime)" :color="setColor(item.finishTime)">
                   <p style="font-weight: 700">{{ item.taskName }}</p>
-                  <el-card :body-style="{ padding: '10px' }">
-                    <label v-if="item.assigneeName" style="font-weight: normal;margin-right: 30px;">实际办理：
-                      {{ item.assigneeName }}
-                      <el-tag type="info" size="mini">{{ item.deptName }}</el-tag>
-                    </label>
-                    <label v-if="item.candidate" style="font-weight: normal;margin-right: 30px;">
-                      候选办理： {{ item.candidate }}
-                    </label>
-                    <label style="font-weight: normal">
-                      接收时间：
-                    </label>
-                    <label style="color:#8a909c;font-weight: normal">
-                      {{ item.createTime }}
-                    </label>
-                    <label v-if="item.finishTime" style="margin-left: 30px;font-weight: normal">
-                      办结时间：
-                    </label>
-                    <label style="color:#8a909c;font-weight: normal">
-                      {{ item.finishTime }}
-                    </label>
-                    <label v-if="item.duration" style="margin-left: 30px;font-weight: normal">
-                      耗时：
-                    </label>
-                    <label style="color:#8a909c;font-weight: normal">
-                      {{ item.duration }}
-                    </label>
-                    <p v-if="item.comment">
-                      <el-tag type="success" v-if="item.comment.type === '1'"> {{ item.comment.comment }}</el-tag>
-                      <el-tag type="warning" v-if="item.comment.type === '2'"> {{ item.comment.comment }}</el-tag>
-                      <el-tag type="danger" v-if="item.comment.type === '3'"> {{ item.comment.comment }}</el-tag>
-                    </p>
+                  <el-card class="box-card" shadow="hover">
+                    <el-descriptions column="5" :labelStyle="{'font-weight': 'bold'}">
+                      <el-descriptions-item label="实际办理">{{ item.assigneeName || '-'}}</el-descriptions-item>
+                      <el-descriptions-item label="候选办理">{{ item.candidate || '-'}}</el-descriptions-item>
+                      <el-descriptions-item label="接收时间">{{ item.createTime || '-'}}</el-descriptions-item>
+                      <el-descriptions-item label="办结时间">{{ item.finishTime || '-' }}</el-descriptions-item>
+                      <el-descriptions-item label="耗时">{{ item.duration || '-'}}</el-descriptions-item>
+                    </el-descriptions>
+                    <div v-if="item.commentList && item.commentList.length > 0" v-for="comment in item.commentList">
+                      <el-divider content-position="left">
+                        <el-tag :type="approveTypeTag(comment.type)" size="mini">{{ commentType(comment.type) }}</el-tag>
+                        <el-tag type="info" effect="plain" size="mini">{{ comment.time }}</el-tag>
+                      </el-divider>
+                      <span>{{ comment.fullMessage }}</span>
+                    </div>
                   </el-card>
                 </el-timeline-item>
               </el-timeline>
@@ -71,73 +81,15 @@
           </el-col>
         </el-card>
       </el-tab-pane>
-      <el-tab-pane label="流程跟踪" name="processTrack">
-        <el-card class="box-card">
+
+      <el-tab-pane label="流程跟踪">
+        <el-card class="box-card" shadow="never">
           <process-viewer :key="`designer-${loadIndex}`" :style="'height:' + height" :xml="xmlData"
                           :finishedInfo="finishedInfo" :allCommentList="null"
           />
         </el-card>
       </el-tab-pane>
     </el-tabs>
-
-    <!--审批正常流程-->
-    <el-dialog :title="completeTitle" :visible.sync="completeOpen" width="60%" append-to-body>
-      <!--      <el-row :gutter="20">-->
-      <!--        &lt;!&ndash;部门数据&ndash;&gt;-->
-      <!--        <el-col :span="4" :xs="24">-->
-      <!--          <h6>部门列表</h6>-->
-      <!--          <div class="head-container">-->
-      <!--            <el-input-->
-      <!--              v-model="deptName"-->
-      <!--              placeholder="请输入部门名称"-->
-      <!--              clearable-->
-      <!--              size="small"-->
-      <!--              prefix-icon="el-icon-search"-->
-      <!--              style="margin-bottom: 20px"-->
-      <!--            />-->
-      <!--          </div>-->
-      <!--          <div class="head-container">-->
-      <!--            <el-tree-->
-      <!--              :data="deptOptions"-->
-      <!--              :props="defaultProps"-->
-      <!--              :expand-on-click-node="false"-->
-      <!--              :filter-node-method="filterNode"-->
-      <!--              ref="tree"-->
-      <!--              default-expand-all-->
-      <!--              @node-click="handleNodeClick"-->
-      <!--            />-->
-      <!--          </div>-->
-      <!--        </el-col>-->
-      <!--        <el-col :span="12" :xs="24">-->
-      <!--          <h6>待选人员</h6>-->
-      <!--          <el-table-->
-      <!--            ref="singleTable"-->
-      <!--            :data="userList"-->
-      <!--            border-->
-      <!--            style="width: 100%"-->
-      <!--            @selection-change="handleSelectionChange">-->
-      <!--            <el-table-column type="selection" width="50" align="center" />-->
-      <!--            <el-table-column label="用户名" align="center" prop="nickName" />-->
-      <!--            <el-table-column label="部门" align="center" prop="dept.deptName" />-->
-      <!--          </el-table>-->
-      <!--        </el-col>-->
-      <!--        <el-col :span="8" :xs="24">-->
-      <!--          <h6>已选人员</h6>-->
-      <!--          <el-tag-->
-      <!--            v-for="tag in userData"-->
-      <!--            :key="tag.nickName"-->
-      <!--            closable-->
-      <!--            @close="handleClose(tag)">-->
-      <!--            {{tag.nickName}} {{tag.dept.deptName}}-->
-      <!--          </el-tag>-->
-      <!--        </el-col>-->
-      <!--      </el-row>-->
-      <span slot="footer" class="dialog-footer">
-        <el-input style="width: 50%;margin-right: 34%" type="textarea" v-model="taskForm.comment" placeholder="请输入处理意见"/>
-        <el-button @click="completeOpen = false">取 消</el-button>
-        <el-button type="primary" @click="taskComplete">确 定</el-button>
-      </span>
-    </el-dialog>
 
     <!--退回流程-->
     <el-dialog :title="returnTitle" :visible.sync="returnOpen" width="40%" append-to-body>
@@ -151,36 +103,68 @@
             >{{item.name}}</el-radio-button>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="退回意见" prop="comment" :rules="[{ required: true, message: '请输入意见', trigger: 'blur' }]">
-          <el-input style="width: 50%" type="textarea" v-model="taskForm.comment" placeholder="请输入意见"/>
-        </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
-            <el-button @click="returnOpen = false">取 消</el-button>
-            <el-button type="primary" @click="taskReturn">确 定</el-button>
-        </span>
+        <el-button @click="returnOpen = false">取 消</el-button>
+        <el-button type="primary" @click="submitReturn">确 定</el-button>
+      </span>
     </el-dialog>
 
-    <!--驳回流程-->
-    <el-dialog :title="rejectTitle" :visible.sync="rejectOpen" width="40%" append-to-body>
-      <el-form ref="taskForm" :model="taskForm" label-width="80px" >
-        <el-form-item label="驳回意见" prop="comment" :rules="[{ required: true, message: '请输入意见', trigger: 'blur' }]">
-          <el-input style="width: 50%" type="textarea" v-model="taskForm.comment" placeholder="请输入意见"/>
-        </el-form-item>
-      </el-form>
+    <el-dialog :title="userDialogTitle" :visible.sync="userOpen" width="60%" append-to-body>
+      <el-row type="flex" :gutter="20">
+        <!--部门数据-->
+        <el-col :span="5">
+          <el-card shadow="never" style="height: 100%">
+            <div slot="header">
+              <span>部门列表</span>
+            </div>
+            <div class="head-container">
+              <el-input v-model="deptName" placeholder="请输入部门名称" clearable size="small" prefix-icon="el-icon-search"/>
+              <el-tree
+                :data="deptOptions"
+                :props="deptProps"
+                :expand-on-click-node="false"
+                :filter-node-method="filterNode"
+                ref="tree"
+                default-expand-all
+                @node-click="handleNodeClick"
+              />
+            </div>
+          </el-card>
+        </el-col>
+        <el-col :span="18">
+          <el-table ref="userTable" height="500" :data="userList" highlight-current-row @current-change="changeCurrentUser">
+            <el-table-column width="30">
+              <template slot-scope="scope">
+                <el-radio :label="scope.row.userId" v-model="currentUserId">{{''}}</el-radio>
+              </template>
+            </el-table-column>
+            <el-table-column label="用户名" align="center" prop="nickName" />
+            <el-table-column label="手机" align="center" prop="phonenumber" />
+            <el-table-column label="部门" align="center" prop="dept.deptName" />
+          </el-table>
+          <pagination
+            :total="total"
+            :page.sync="queryParams.pageNum"
+            :limit.sync="queryParams.pageSize"
+            @pagination="getList"
+          />
+        </el-col>
+      </el-row>
       <span slot="footer" class="dialog-footer">
-          <el-button @click="rejectOpen = false">取 消</el-button>
-          <el-button type="primary" @click="taskReject">确 定</el-button>
-        </span>
+        <el-button @click="userOpen = false">取 消</el-button>
+        <el-button type="primary" v-if="userDialogTitle === '委派任务'" @click="submitDelegate">确 定</el-button>
+        <el-button type="primary" v-if="userDialogTitle === '转办任务'" @click="submitTransfer">确 定</el-button>
+      </span>
     </el-dialog>
   </div>
 </template>
 
 <script>
-import { flowRecord } from '@/api/workflow/finished'
+import { getDetailInstance } from '@/api/workflow/instance'
 import Parser from '@/utils/generator/parser'
 import { definitionStart, getFlowViewer, getProcessVariables, readXml } from '@/api/workflow/definition'
-import { complete, delegate, getNextFlowNode, rejectTask, returnList, returnTask } from '@/api/workflow/todo'
+import { complete, delegate, transfer,getNextFlowNode, rejectTask, returnList, returnTask } from '@/api/workflow/todo'
 import { treeselect } from '@/api/system/dept'
 import ProcessViewer from '@/components/ProcessViewer'
 import '@riophae/vue-treeselect/dist/vue-treeselect.css'
@@ -195,10 +179,33 @@ export default {
     Treeselect
   },
   props: {},
+  computed: {
+    commentType() {
+      return val => {
+        switch (val) {
+          case '1': return '通过'
+          case '2': return '退回'
+          case '3': return '驳回'
+          case '4': return '委派'
+          case '5': return '转办'
+        }
+      }
+    },
+    approveTypeTag() {
+      return val => {
+        switch (val) {
+          case '1': return 'success'
+          case '2': return 'warning'
+          case '3': return 'danger'
+          case '4': return 'primary'
+          case '5': return 'success'
+        }
+      }
+    }
+  },
   data() {
     return {
       height: document.documentElement.clientHeight - 205 + 'px;',
-      activeTagName: 'basicInfo',
       // 模型xml数据
       loadIndex: 0,
       xmlData: undefined,
@@ -215,7 +222,7 @@ export default {
       deptOptions: undefined,
       // 用户表格数据
       userList: null,
-      defaultProps: {
+      deptProps: {
         children: "children",
         label: "label"
       },
@@ -223,18 +230,17 @@ export default {
       queryParams: {
         deptId: undefined
       },
+      total: 0,
       // 遮罩层
       loading: true,
-      flowRecordList: [], // 流程流转数据
+      flowRecordList: [],
       formConfCopy: {},
-      src: null,
-      rules: {}, // 表单校验
-      variablesForm: {}, // 流程变量数据
+      variablesForm: {},
       taskForm:{
-        returnTaskShow: false, // 是否展示回退表单
-        delegateTaskShow: false, // 是否展示回退表单
-        defaultTaskShow: true, // 默认处理
-        sendUserShow: false, // 审批用户
+        returnTaskShow: false,
+        delegateTaskOpen: false,
+        defaultTaskShow: true,
+        sendUserShow: false,
         multiple: false,
         comment:"", // 意见内容
         procInsId: "", // 流程实例编号
@@ -245,6 +251,10 @@ export default {
         vars: "",
         targetKey:""
       },
+      rules: {
+        comment: [{ required: true, message: '请输入审批意见', trigger: 'blur' }],
+      },
+      currentUserId: null,
       userDataList:[], // 流程候选人
       assignee: null,
       formConf: {}, // 默认表单数据
@@ -254,12 +264,12 @@ export default {
       variableOpen: false, // 是否加载流程变量数据
       returnTaskList: [],  // 回退列表数据
       finished: 'false',
-      completeTitle: null,
-      completeOpen: false,
       returnTitle: null,
       returnOpen: false,
       rejectOpen: false,
       rejectTitle: null,
+      userDialogTitle: '',
+      userOpen: false,
       userData:[],
     };
   },
@@ -271,7 +281,7 @@ export default {
     this.taskForm.instanceId = this.$route.query && this.$route.query.procInsId;
     this.finished =  this.$route.query && this.$route.query.finished
     // 流程任务重获取变量表单
-    if (this.taskForm.taskId){
+    if (this.taskForm.taskId) {
       this.processVariables( this.taskForm.taskId)
       // this.getNextFlowNode(this.taskForm.taskId)
       this.taskForm.deployId = null
@@ -283,7 +293,7 @@ export default {
   },
   methods: {
     /** 查询部门下拉树结构 */
-    getTreeselect() {
+    getTreeSelect() {
       treeselect().then(response => {
         this.deptOptions = response.data;
       });
@@ -377,8 +387,9 @@ export default {
     /** 流程流转记录 */
     getFlowRecordList(procInsId, deployId) {
       const params = {procInsId: procInsId, deployId: deployId}
-      flowRecord(params).then(res => {
+      getDetailInstance(params).then(res => {
         this.flowRecordList = res.data.flowList;
+        console.log("res flowList => ", this.flowRecordList)
         // 流程过程中不存在初始化表单 直接读取的流程变量中存储的表单值
         if (res.data.formData) {
           this.formConf = res.data.formData;
@@ -433,34 +444,50 @@ export default {
         }
       })
     },
-    /** 审批任务选择 */
+    /** 通过任务 */
     handleComplete() {
-      this.completeOpen = true;
-      this.completeTitle = "审批流程";
-      this.getTreeselect();
-    },
-    /** 审批任务 */
-    taskComplete() {
-      // if (!this.taskForm.values){
-      //   this.$modal.msgError("请选择流程接收人员");
-      //   return;
-      // }
-      if (!this.taskForm.comment){
-        this.$modal.msgError("请输入审批意见");
-        return;
-      }
-      complete(this.taskForm).then(response => {
-        this.$modal.msgSuccess(response.msg);
-        this.goBack();
+      this.$refs['taskForm'].validate(valid => {
+          if (valid) {
+            complete(this.taskForm).then(response => {
+              this.$modal.msgSuccess(response.msg);
+              this.goBack();
+            });
+          }
       });
     },
     /** 委派任务 */
     handleDelegate() {
-      this.taskForm.delegateTaskShow = true;
-      this.taskForm.defaultTaskShow = false;
+      this.$refs["taskForm"].validate(valid => {
+        if (valid) {
+          this.userDialogTitle = '委派任务'
+          this.userOpen = true;
+          this.getTreeSelect();
+        }
+      })
     },
-    handleAssign(){
-
+    /** 转办任务 */
+    handleTransfer(){
+      this.$refs["taskForm"].validate(valid => {
+        if (valid) {
+          this.userDialogTitle = '转办任务'
+          this.userOpen = true;
+          this.getTreeSelect();
+        }
+      })
+    },
+    /** 驳回任务 */
+    handleReject() {
+      this.$refs["taskForm"].validate(valid => {
+        if (valid) {
+          rejectTask(this.taskForm).then(res => {
+            this.$modal.msgSuccess(res.msg);
+            this.goBack();
+          });
+        }
+      });
+    },
+    changeCurrentUser(val) {
+      this.currentUserId = val.userId
     },
     /** 返回页面 */
     goBack() {
@@ -507,67 +534,64 @@ export default {
         }
       }
     },
-    /** 驳回任务 */
-    handleReject() {
-      this.rejectOpen = true;
-      this.rejectTitle = "驳回流程";
+    submitDelegate() {
+      if (!this.taskForm.comment) {
+        this.$modal.msgError("请输入审批意见");
+        return false;
+      }
+      if (!this.currentUserId) {
+        this.$modal.msgError("请选择委派用户");
+        return false;
+      }
+      this.taskForm.userId = this.currentUserId;
+      delegate(this.taskForm).then(res => {
+        this.$modal.msgSuccess(res.msg);
+        this.goBack();
+      });
     },
-    /** 驳回任务 */
-    taskReject() {
-      this.$refs["taskForm"].validate(valid => {
-        if (valid) {
-          rejectTask(this.taskForm).then(res => {
-            this.$modal.msgSuccess(res.msg);
-            this.goBack();
-          });
-        }
+    submitTransfer() {
+      if (!this.taskForm.comment) {
+        this.$modal.msgError("请输入审批意见");
+        return false;
+      }
+      if (!this.currentUserId) {
+        this.$modal.msgError("请选择受理用户");
+        return false;
+      }
+      this.taskForm.userId = this.currentUserId;
+      transfer(this.taskForm).then(res => {
+        this.$modal.msgSuccess(res.msg);
+        this.goBack();
       });
     },
     /** 可退回任务列表 */
     handleReturn() {
-      this.returnOpen = true;
-      this.returnTitle = "退回流程";
-      returnList(this.taskForm).then(res => {
-        this.returnTaskList = res.data;
-        this.taskForm.values = null;
-      })
+      this.$refs['taskForm'].validate(valid => {
+        if (valid) {
+          this.returnTitle = "退回流程";
+          returnList(this.taskForm).then(res => {
+            this.returnTaskList = res.data;
+            this.taskForm.values = null;
+            this.returnOpen = true;
+          })
+        }
+      });
+
     },
     /** 提交退回任务 */
-    taskReturn() {
+    submitReturn() {
       this.$refs["taskForm"].validate(valid => {
         if (valid) {
+          if (!this.taskForm.targetKey) {
+            this.$modal.msgError("请选择退回节点！");
+          }
           returnTask(this.taskForm).then(res => {
             this.$modal.msgSuccess(res.msg);
             this.goBack()
           });
         }
       });
-    },
-    /** 取消回退任务按钮 */
-    cancelTask() {
-      this.taskForm.returnTaskShow = false;
-      this.taskForm.defaultTaskShow = true;
-      this.taskForm.sendUserShow = true;
-      this.returnTaskList = [];
-    },
-    /** 委派任务 */
-    submitDeleteTask() {
-      this.$refs["taskForm"].validate(valid => {
-        if (valid) {
-          delegate(this.taskForm).then(response => {
-            this.$modal.msgSuccess(response.msg);
-            this.goBack();
-          });
-        }
-      });
-    },
-    /** 取消回退任务按钮 */
-    cancelDelegateTask() {
-      this.taskForm.delegateTaskShow = false;
-      this.taskForm.defaultTaskShow = true;
-      this.taskForm.sendUserShow = true;
-      this.returnTaskList = [];
-    },
+    }
   }
 };
 </script>
@@ -594,5 +618,15 @@ export default {
 
 .el-tag + .el-tag {
   margin-left: 10px;
+}
+
+.el-row {
+  margin-bottom: 20px;
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+.el-col {
+  border-radius: 4px;
 }
 </style>

@@ -1,8 +1,10 @@
 package com.ruoyi.web.controller.workflow;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.ruoyi.common.core.domain.PageQuery;
 import com.ruoyi.common.core.domain.R;
 import com.ruoyi.common.core.page.TableDataInfo;
+import com.ruoyi.workflow.domain.dto.WfNextDto;
 import com.ruoyi.workflow.domain.vo.WfTaskVo;
 import com.ruoyi.workflow.domain.bo.WfTaskBo;
 import com.ruoyi.workflow.service.IWfTaskService;
@@ -35,12 +37,6 @@ public class WfTaskController {
 
     private final IWfTaskService flowTaskService;
 
-    @ApiOperation(value = "我发起的流程", response = WfTaskVo.class)
-    @GetMapping(value = "/myProcess")
-    public TableDataInfo<WfTaskVo> myProcess(PageQuery pageQuery) {
-        return flowTaskService.myProcess(pageQuery);
-    }
-
     @ApiOperation(value = "取消申请", response = WfTaskVo.class)
     @PostMapping(value = "/stopProcess")
     public R stopProcess(@RequestBody WfTaskBo bo) {
@@ -55,29 +51,24 @@ public class WfTaskController {
         return R.ok();
     }
 
+    @Deprecated
     @ApiOperation(value = "获取待办列表", response = WfTaskVo.class)
     @GetMapping(value = "/todoList")
     public TableDataInfo<WfTaskVo> todoList(PageQuery pageQuery) {
         return flowTaskService.todoList(pageQuery);
     }
 
+    @Deprecated
     @ApiOperation(value = "获取已办任务", response = WfTaskVo.class)
     @GetMapping(value = "/finishedList")
     public TableDataInfo<WfTaskVo> finishedList(PageQuery pageQuery) {
         return flowTaskService.finishedList(pageQuery);
     }
 
-
-    @ApiOperation(value = "流程历史流转记录", response = WfTaskVo.class)
-    @GetMapping(value = "/flowRecord")
-    public R flowRecord(String procInsId, String deployId) {
-        return R.ok(flowTaskService.flowRecord(procInsId, deployId));
-    }
-
     @ApiOperation(value = "获取流程变量", response = WfTaskVo.class)
     @GetMapping(value = "/processVariables/{taskId}")
     public R processVariables(@ApiParam(value = "流程任务Id") @PathVariable(value = "taskId") String taskId) {
-        return flowTaskService.processVariables(taskId);
+        return R.ok(flowTaskService.getProcessVariables(taskId));
     }
 
     @ApiOperation(value = "审批任务")
@@ -132,21 +123,28 @@ public class WfTaskController {
     @ApiOperation(value = "委派任务")
     @PostMapping(value = "/delegate")
     public R delegate(@RequestBody WfTaskBo bo) {
+        if (ObjectUtil.hasNull(bo.getTaskId(), bo.getUserId())) {
+            return R.fail("参数错误！");
+        }
         flowTaskService.delegateTask(bo);
         return R.ok();
     }
 
     @ApiOperation(value = "转办任务")
-    @PostMapping(value = "/assign")
-    public R assign(@RequestBody WfTaskBo bo) {
-        flowTaskService.assignTask(bo);
+    @PostMapping(value = "/transfer")
+    public R transfer(@RequestBody WfTaskBo bo) {
+        if (ObjectUtil.hasNull(bo.getTaskId(), bo.getUserId())) {
+            return R.fail("参数错误！");
+        }
+        flowTaskService.transferTask(bo);
         return R.ok();
     }
 
     @ApiOperation(value = "获取下一节点")
     @PostMapping(value = "/nextFlowNode")
     public R getNextFlowNode(@RequestBody WfTaskBo bo) {
-        return flowTaskService.getNextFlowNode(bo);
+        WfNextDto wfNextDto = flowTaskService.getNextFlowNode(bo);
+        return wfNextDto != null ? R.ok(wfNextDto) : R.ok("流程已完结", null);
     }
 
     /**

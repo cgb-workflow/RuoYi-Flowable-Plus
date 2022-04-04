@@ -2,9 +2,7 @@ package com.ruoyi.workflow.service;
 
 import com.ruoyi.workflow.domain.bo.WfTaskBo;
 import org.flowable.engine.history.HistoricProcessInstance;
-import org.flowable.task.api.Task;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -12,8 +10,6 @@ import java.util.Map;
  * @createTime 2022/3/10 00:12
  */
 public interface IWfInstanceService {
-
-    List<Task> queryListByInstanceId(String instanceId);
 
     /**
      * 结束流程实例
@@ -46,12 +42,11 @@ public interface IWfInstanceService {
      */
     HistoricProcessInstance getHistoricProcessInstanceById(String processInstanceId);
 
+
     /**
-     * 根据流程定义ID启动流程实例
-     *
-     * @param procDefId 流程定义Id
-     * @param variables 流程变量
-     * @return
+     * 查询流程详情信息
+     * @param procInsId 流程实例ID
+     * @param deployId 流程部署ID
      */
-    void startProcessInstanceById(String procDefId, Map<String, Object> variables);
+    Map<String, Object> queryDetailProcess(String procInsId, String deployId);
 }
